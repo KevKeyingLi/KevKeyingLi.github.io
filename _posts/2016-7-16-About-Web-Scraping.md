@@ -1,3 +1,8 @@
+---
+layout: post
+title: Angular2 Learning Note
+author: Kevin
+---
 I have been recently working on a project to download online files from a website. Here I would like to describe and record how I tackled it and what are the methods that I used. Due to privacy concerns I will not be able to disclose the name of the website. 
 
 ## Problem Overview
