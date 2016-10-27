@@ -192,9 +192,9 @@ To run a function in the context that we want it to, we can use the call() funct
 The call function, binds its first parameter to its caller.
 To define a subclass of a superclass, we can use the call function of the superclass in the subclass definition. To make the superclass constructor to be called in the context of the subclass. :
 
-var Van = function(loc){
-     Car.call(this, loc);// this line calls the Car function so that the this of the Car function is bound to the Van's instance.
-};
+     var Van = function(loc){
+          Car.call(this, loc);// this line calls the Car function so that the 'this' of the Car function is bound to the Van's instance.
+     };
 
 So far, the loc property of van instance is delegated to a potential car instance, next is prototype. For now, van.prototype delegates to Object.prototype.
      Van.prototype = Object.create(Car.prototype);
