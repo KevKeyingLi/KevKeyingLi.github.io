@@ -1,3 +1,10 @@
+This semester, I did my first JavaScript project without even knowing JavaScript before that. It was an unforgetable experience getting hands on all those stranger concepts and tools like anonymous function, JQuery, AJAX, D3JS... Finally, the end has came for this messed up semester, and I find some time to **Systematically** go through the details of JavaScript. 
+
+This is the learning note that I wrote down, when I took the *Object Oriented Javascript* course on Udacity. This note was originally in my Evernote, but I figured it would be better to translate it into Markdown. 
+
+The course is nice and compact. The description says it would take approx 5 weeks, but if you play the video at x1.5 and super focus, it could just take three or four days. For JavaScript beginners, I would suggest start with the JavaScript Basic[https://www.udacity.com/course/javascript-basics--ud804] course. Other nice related courses like Intro to AJAX[https://www.udacity.com/course/intro-to-ajax--ud110], JavaScript Design Patterns[https://www.udacity.com/course/javascript-design-patterns--ud989], could be found on Udacity website. 
+
+---------------------------------
 ## Scope:
 
 - in JavaScript only functions create new scope, if, else does not create new scope
