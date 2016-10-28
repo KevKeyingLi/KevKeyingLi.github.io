@@ -1,3 +1,9 @@
+---
+layout: post
+title: Object Oriented Javascript Note - Udacity
+author: Kevin
+---
+
 This semester, I did my first JavaScript project without even knowing JavaScript before that. It was an unforgetable experience getting hands on all those stranger concepts and tools like anonymous function, JQuery, AJAX, D3JS... Finally, the end has came for this messed up semester, and I find some time to **Systematically** go through the details of JavaScript. 
 
 This is the learning note that I wrote down, when I took the *Object Oriented Javascript* course on Udacity. This note was originally in my Evernote, but I figured it would be better to translate it into Markdown. 
