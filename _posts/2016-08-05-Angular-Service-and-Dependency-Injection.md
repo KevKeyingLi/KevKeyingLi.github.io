@@ -4,6 +4,7 @@ title: Angular2 Service and Dependency Injection Learning Note
 author: Kevin
 ---
 
+
 Service is an important design choice in angular 2, the idea is to keep components lean. Here I will cover what I learned about using service and dependency injection. A nice and more detailed resource to look at: https://angular.io/docs/ts/latest/guide/architecture.html 
 
 ### Service
