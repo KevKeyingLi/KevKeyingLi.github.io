@@ -219,5 +219,96 @@ A great benefit of this service is to allow remote EJBs to be managed as if they
 Q What are services in Java EE?
 
 ## The Observer design pattern
+An Overview:
+* Observer pattern is widely used in many developers' apis
+* Java EE provides both Asynchronous and Synchorous observer
+* **Inform of state change**: The idea behind the observer pattern is that an object that changes its state can inform other objects that a change in state has occurred. 
+
+### Key components:
+* Subject: the object that changes its state
+* Observers: objects that receives notification of the change of state. 
+* 1 to many: subject may have many observers
+* Pass message in a decoupled way: subject knows nothing about the observers. In java EE **subject and observers are truely decoupled**. 
+
+Java SE has a built in Observer pattern in the java.util package. Extend `java.util.Observer` and `java.util.Observable` will do the work. open .
+
+### Java EE implementation
+* annotation driven: use `@Observes` to mark observers.`javax.enterprise.event.Observes`
+* The subject uses the event class to create and fire events that the observers listen for. `javax.enterprise.event.Event`
+
+Basically the subject sends an object to all observers, by firing event.
+
+Simple example:
+```
+    public void createCustomer(@Observes Customer customer) {
+        // add new customer
+    }
+```
+```
+    @Inject
+    private Event<Customer> customerAddEvent;
+
+    public void newCustomer(Customer customer) {
+        customerAddEvent.fire(customer);
+    }
+```
+##Implement Observer Pattern: Exercise **02_10**
+Requirements:
+* a REST endpoint that is called to create a new customer.
+* fires a new customer event
+* three observers are listening to the new customer event
+    - The CustomerService, that creates a new customer, 
+    - the AuthenticationService, that creates the authentication credentials for the new customer, 
+    - and the EmailService that sends a welcome email.
+
+> about rest, refer to course *RESTful Service with JAX-RS 2.0.*
+
+The essence of the observer pattern, to decouple the change in the object state from those that react to its change.
+
+## Observer priority and qualifiers
+### Priority
+* observer exception breaks chain: if an observer throws an exception the uncalled observers are not invoked
+* Alleviated with `@Priority` setting: use this to specify order of observers to be invoked. **New in java8**
+* The lowest value priorities are called first
+* if no priority is specified, then the default middle value is assumed: the application constant from the priority class `javax.interceptor.Interceptor.Priority.APPLICATION` +500
+* observers with the same priority are invoked in an **unpredictable order**.
+
+**02_11** Code changes: +priority
+e.g.`(@Observes @Priority(1000) Customer customer)`
+
+### Qualifiers
+A qualifier allows the container to disambiguate between instances injected into the class, and thus with the use of qualifiers, I could inject two different event instances of type customer.
+
+Create a custom qualifier annotation using annotations. See details in exercise files. 
+
+A qualifier is basically a distinguisher for events. Subject and Observers use the same qualifier annotation to specify who listens to whom. 
+
+
+## Asynchronous observer
+Exercise **02_12**
+* By default events are synchronous. However, in CDI 2.0 they introduced asynchronous processing of events
+* New method: `fireAsync` and annotation `@ObservesAsync`
+* The events are observed asynchronously and in separate threads so **no priority can logically be set**. **no `@Priority` for Async**
+* Asynchronous and synchronous observers operate independently from each other. So an asynchronous firing of an event cannot be observed by a parameter annotated observers and vice versa. 
+* Notification options can be set on the asynchronous firing event. There's allowed a specification of a thread pool for that observer. 
+* The fireAsync method returns an instance of `CompletionStage`. So if an exception is thrown by one of the observers, the `CompletionStage` will complete with completion exceptions. This instance holds a reference to all the suppressed exceptions throw during observer invocation and can be handled in the same way that you would handle a completion state instance
+
+CompletionStage is a Java EE exception, google for more info.
+
+
+## The decorator design Pattern
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
