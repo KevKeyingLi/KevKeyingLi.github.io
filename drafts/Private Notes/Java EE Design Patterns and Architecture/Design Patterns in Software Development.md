@@ -1,4 +1,6 @@
-# Design Patterns in Software Development
+Java EE: Design Patterns and Architecture Cource on LNKD learning
+
+# 1. Design Patterns in Software Development
 ## Classic GOF software design patterns
 * solutions to common problems
 * about object creation and interactions for micro scale problems
@@ -52,7 +54,7 @@ Longevity of design pattern, relevant to remainder of your career.
 
 
 
-# 2. classic soterware design patterns in java EE
+# 2. classic software design patterns in java EE
 ## classic soterware design patterns revisited
 * Some of the GOF patterns are built in OOB in java. e.g. observer pattern in Java SE. `java.util.Observable; java.util.Observer;`
 * Some of the GOF patterns are used to build some of java's APIs: e.g. 
@@ -297,12 +299,235 @@ CompletionStage is a Java EE exception, google for more info.
 
 
 ## The decorator design Pattern
+### the concepts overview
+* Structrual Patterns
+* It's purpose is to wrap a target object, theoretically unlimited layers of wrapping. 
+* To dynamically add behavior at runtime, or when it is not possible, or advisable, to use sub classing
+* e.g. data streams like java.io.BufferedInputStream
+* runtime behavior is more flexible than inheritance, but adds complexity of sub classing, making it hard to determine type and behaviors prior to execution.
+* In JavaEE, `@Decorator` `@Delegate`
+    - The @Decorator annotation marks a decorator class
+    - @Delegate annotation marks delegate injection point where the class to be decorated is injected.
+
+### Simple scienario
+Logger scienario, the logger is a third party API. To change the format, we need a decorator wrapping over the logger.
+
+The third party LogMessage interface looks like this:
+```
+public interface LogMessage {
+    void printMessage();
+    String getMessage();
+    void setMessage(String message);
+}
+```
+
+The decorator is created by implementing the same `LogMessage` interface, and add the decorator annotation `@Decorator`. Example: `02_14_start`
+
+```
+@Decorator // identify as an decorator
+@Priority(10) //The order of decorators to be applied. 
+public abstract class LogMessageFormatter implements LogMessage { 
+//if I want to decorate the logMessage, I need to implement the interface
+//abstract so that I don't have to implement all the interface methods.
+
+    @ //Any because I want to inject every instance of the logMessage.
+    @Inject //add that injection point, with the type I want to inject
+    @Delegate //in order to identify this as the delegate.
+    private LogMessage logMessage;
+
+    @Override
+    public void printMessage() {
+        //To use the API
+        String message = logMessage.getMessage();
+        message = LocalDate.now().toString().concat(message);
+        logMessage.setMessage(message);
+    }
+
+}
+```
+
+This is a simple example, and things far more complex could be achieved. e.g. in `LogMessageJSONFormatter.java
+```
+@Decorator
+@Priority(20)
+public abstract class LogMessageJSONFormatter implements LogMessage {
+
+    @Any
+    @Inject
+    @Delegate
+    @ComplexMessage //annotate the logMessage injection point in the decorator so that only instances of logMessage annotated ComplexMessage are actually injected
+    private LogMessage logMessage;
+
+    @Override
+    public void printMessage() {
+        String message = logMessage.getMessage();
+        String jsonMessage = JsonbBuilder.create().toJson(message);
+        logMessage.setMessage(jsonMessage);
+    }
+
+}
+```
+To filter which message should be decorated, we can create a qualifier as in ComplexMessage.java:
+1. create qualifier annotation
+```
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+public @interface ComplexMessage {}
+```
+2. use the qualifier on a system message concrete class:
+```
+@ComplexMessage //To identify this is the message to be formatted.
+public class SystemMessage implements LogMessage {
+
+    private String message;
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    @Override
+    public void printMessage() {
+        System.out.print(message);
+    }
+}```
+3. annotate the logMessage injection point in the decorator so that only instances of logMessage annotated ComplexMessage are actually injected
+
+And now only those instances of logMessage annotated with ComplexMessage are decorated and all other instances remain in their original form.
+
+# 3. Architectural Software Patterns in Java EE
+## What are enterprise software patterns
+* Enterprise software patterns are solution to problems commonly found in Enterprise systems. 
+* unique problems for enterprise software -> their own set of solutions
+* Example: MVC
+    - not exclusively enterprise , certainly solves the common Enterprise problems of **separating the presentation logic from the business logic**
+    - Web apps
+    - views separated from model ensures the **visual display** and the **processing** of the app's data separate.
+* Other patterns in the Enterprise Software world:
+    - software pattern
+    - integration pattern:  Enterprise systems integration problems. These patterns tend to be **structural** in nature, and solve problems such as file transfer, shared databases, remote procedure calls, and messaging.
+    - architecture patterns: the structure of the Enterprise application. They're concerned with the **organization and separation** of concerns
+        + might put the database at the center of the application. The classic three-tiered architecture does this,
+        + might describe the database as an implementation detail and relegate it to the outer parts of the application design or putting the domain model at the heart of the application. Domain-centric architecture does this.
 
 
 
 
 
 
+
+## The Dependency Injection Pattern
+* Well-known but not GOF, to promote loose coupling
+* The dependency injection pattern is based on the idea of inverting control. Instead of creating hard dependencies and creating new objects, either with a new keyword or look-ups, you inject the needed resources into the destination object.
+* The client does not need to be aware of the different implementations of the injected resources, 
+    - making **design changes** much easier
+    - **unit testing** using mock objects is much easier to implement
+    - **configuration can externalized**, thereby reducing the impact of changes
+    - and finally, a loosely coupled architecture allows **pluckable structures**.
+* The basic idea: *change the place where objects are created and use an injector to inject the specific implementation into the destination object at the right moment.*
+* More than object creation(factory pattern)
+* Objects are instantiated by the container and injected into qualifying injection points.
+* Injection points are identified by the annotation `@inject` -> field, constructor, or a method. 
+* Objects are instantiated based on their conformity to the specifications of a managed bean 
+    - [as described in the specification documentation "Contexts and Dependency Injection for Java 2.0" JSR 365]
+    - the injectable object(also called: managed CDI bean) must conform to the requirements in section 3.1: For an object to be discovered and instantiated as a managed CDI bean, it must meet all of these conditions
+        + It is not an inner class
+        + it is not a non-abstract class or an annotated `@Decorator`
+        + it does not implement a service provider interface(SPI extension)
+        + it is not annotated `@Vetoed` or in a package annotated `@Vetoed`
+        + it has an appropriate constructor, 
+            * which can be either a constructor with no parameters 
+            * or it declares a constructor annotated inject.
+    - Compliant POJOs are instantiated as managed CDI beans -> no special decoration or configuration is required.
+* The container matches the type at the injection point with the object type, and injects an instance of the object if there is a match at the injeciton point. `03_02_start`: injecting an instance of the subject class into the target class. 
+    - instance can be injected based on a class/interface type match
+    - Using interface might give rise to Ambiguous dependency, due to posibility of multiple implementation classes. `@Qualifiers`
+* **Qualifiers** are custom annotations that can be used to identify the implementation you want to be injected. example at `03_02_start`
+```
+//Favorites.java
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD, ElementType.CONSTRUCTOR})
+public @interface Favourites {}
+
+```
+
+```
+//Target.java
+public class Target {
+
+    @Inject
+    @Favourites
+    Subject subject;
+
+}
+```
+
+## The filter design pattern
+
+## AOP: The interceptor pattern
+
+## AOP: Implement the interceptor pattern
+
+## The MVC and Front Controller pattern
+
+# 4. Introduction to Enterprise Architecture
+
+## What is software arch
+
+## why do we need arch
+
+# 5. Database Centric Architecture
+
+## What is 
+
+## Classic Three Tier arch
+
+## advantages and disadvantages
+
+# 6. Domain-Centric Architecture
+
+## What is domain-centric architecture?
+
+## Modern four-layer architecture
+
+## Types of domain architecture
+
+## Advantages and disadvantages
+
+# 7. Screaming Architecture
+
+## What is screaming architecture?
+
+## Functional vs. categorical
+
+## Advantages and disadvantages
+
+# 8. CQRS Architectures
+
+## What is CQRS architecture?
+
+## The three variants
+
+## Advantages and disadvantages
+
+# 9. Monolith and Microservice Architectures
+
+## What is a monolith?
+
+## What is a microservice?
+
+## Advantages and disadvantages of microservices
+
+# Conclusion
+
+## Next steps
 
 
 
