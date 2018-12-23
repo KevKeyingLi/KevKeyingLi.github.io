@@ -396,7 +396,8 @@ public class SystemMessage implements LogMessage {
     public void printMessage() {
         System.out.print(message);
     }
-}```
+}
+```
 3. annotate the logMessage injection point in the decorator so that only instances of logMessage annotated ComplexMessage are actually injected
 
 And now only those instances of logMessage annotated with ComplexMessage are decorated and all other instances remain in their original form.
@@ -415,12 +416,6 @@ And now only those instances of logMessage annotated with ComplexMessage are dec
     - architecture patterns: the structure of the Enterprise application. They're concerned with the **organization and separation** of concerns
         + might put the database at the center of the application. The classic three-tiered architecture does this,
         + might describe the database as an implementation detail and relegate it to the outer parts of the application design or putting the domain model at the heart of the application. Domain-centric architecture does this.
-
-
-
-
-
-
 
 ## The Dependency Injection Pattern
 * Well-known but not GOF, to promote loose coupling
