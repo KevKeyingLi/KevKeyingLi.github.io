@@ -137,6 +137,52 @@ returns an array of values in the same order as the original array of promises
 if all resolve, this resolves. 
 
 
+# Web read on `await` and `async` 
+https://javascript.info/async
+## async function
+e.g. 
 
+```
+async function f() {
+    return 1;
+}
 
+async function f() {
+    return Promise.resolve(1);
+}
+```
 
+The word “async” before a function means one simple thing: a function always returns a promise. If the code has return <non-promise> in it, then JavaScript automatically wraps it into a resolved promise with that value. **To summarize, `async` either returns a existing promise, or wraps non-promise in it.**
+
+The result of `f().then(alert)` will have the same response with the above two functions. 
+
+## await
+`await` is used only in a **`async` function** **before a thenable(most cases a promise)**, The keyword `await` literally makes JavaScript wait until that promise settles and returns its result. 
+
+Since `await` is in `async` function, it does not pause the main thread from executing.
+
+Async/Await is an alternative for promise thenning/chaining
+
+A few key points:
+* Can’t use `await` in regular functions, only in async
+* `await` won’t work in the top-level code, only in async
+* `await` accepts thenables(not limited to promise, thenable = promise-compatible)
+* A class method can also be async, just put async before it.
+
+## Error Handling
+If promise settles with reject, the exception is generated, same as if throw error were called at that very place.
+```
+async function f() {
+
+  try {
+    let response = await fetch('/no-user-here');
+    let user = await response.json();
+  } catch(err) {
+    // catches errors both in fetch and response.json
+    alert(err);
+  }
+}
+```
+
+* async/await and promise.then/catch are interchangable. In top level code, use promise.then/catch
+* async/await works well with Promise.all
