@@ -186,3 +186,6 @@ async function f() {
 
 * async/await and promise.then/catch are interchangable. In top level code, use promise.then/catch
 * async/await works well with Promise.all
+
+## My note:
+`async/await` does the same thing as `Promise`. And the main benefit of `async/await` and `Promise` is they make async operations somewhat synchrounized. From *uh, need to wait for this thing to return* to *wow, I am returned with somthing I can operate on immediately*. 
