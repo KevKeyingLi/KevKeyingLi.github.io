@@ -110,7 +110,7 @@ How do you make parallel calls appear in the correct order -> next chap
 * run Promises in parellel with forEach, no order guarantee
 * run Promises in sequence with forEach, ordered. But not efficient and the code is error prone. :
 ```
-    var sequence = new Promese.resolve();
+    var sequence = new Promise.resolve();
     arr.forEach(function(url) {
         sequence = sequence.then(function() {
             return get(url);//the real async call
@@ -171,6 +171,7 @@ A few key points:
 
 ## Error Handling
 If promise settles with reject, the exception is generated, same as if throw error were called at that very place.
+
 ```
 async function f() {
 
