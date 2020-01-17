@@ -131,4 +131,17 @@ const loudLastUpper = compose(angry, last);
 * we don't need the data to construct our function in the pointfree version, whereas in the pointful one, we must have our data available before anything else.
 
 ## Debugging
+A common mistake is to compose something like map, a function of two arguments, without first partially applying it.
+
+To debug a compose sequence is super simple, simply create an impure trace function, and add it to the composing sequence. 
+```
+const trace = curry((tag, x) => {
+  console.log(tag, x);
+  return x;
+});
+```
+
+## Category Theory
+
+
 
