@@ -1,5 +1,5 @@
 # Javascript Promises
-This is the learning note for Udacity course Javascript Promises
+This is the learning note for Udacity course [Javascript Promises](https://www.udacity.com/course/javascript-promises--ud898)
 
 # Overview
 Promises is recomended way to handle asynchronous events in javascripts, according to MDN: *The Promise object represents the eventual completion (or failure) of an asynchronous operation, and its resulting value.* 
@@ -10,7 +10,7 @@ The course covers how to use Promises in four blocks:
 * Catching: [promise -value-> recovery] handling failures
 * Chaining: [promise -> promise -> promise]
 
-A good note on promises: JavaScript Promises - Jake Archibald https://developers.google.com/web/fundamentals/primers/promises
+A good note on promises: [JavaScript Promises - Jake Archibald](https://developers.google.com/web/fundamentals/primers/promises)
 
 Four states of a Promise:
 * Fulfilled(resolved)
@@ -18,7 +18,8 @@ Four states of a Promise:
 * Pending: Neither fulfilled, or rejected
 * Settled: Either fulfilled, or rejected
 
-##promise timeline
+
+## promise timeline
 a promise can only settle once.
 
 an event can fire as many times, but a promise can only settle once. 
@@ -30,6 +31,7 @@ Promise happens in main thread, so they are blocking. de-asynchronous-ed.
 Promise is a try-catch wrapper that could finish at anytime
 
 Example: 
+
 ```
 new Promise(function(resolve, reject)) {
     var value = doAsyncWork();
@@ -109,6 +111,7 @@ How do you make parallel calls appear in the correct order -> next chap
 #### forEach 
 * run Promises in parellel with forEach, no order guarantee
 * run Promises in sequence with forEach, ordered. But not efficient and the code is error prone. :
+
 ```
     var sequence = new Promise.resolve();
     arr.forEach(function(url) {
@@ -126,12 +129,13 @@ map each promise to an array which maintains the order?
 
 
 #### promise.all
-
+```
 Promise.all(arrayOfPromises) {
     function(arrayOfValues) {
-
+    ...
     }
 }
+```
 returns an array of values in the same order as the original array of promises
 .all fails fast, if one of the promises reject, the whole thing rejects. 
 if all resolve, this resolves. 
@@ -190,3 +194,15 @@ async function f() {
 
 ## My note:
 `async/await` does the same thing as `Promise`. And the main benefit of `async/await` and `Promise` is they make async operations somewhat synchrounized. From *uh, need to wait for this thing to return* to *wow, I am returned with somthing I can operate on immediately*. 
+* A quick way to distinguish the concept of resolve and then.
+    - resolve is determined by the what we write in the Promise constructor callback function. When used for async call, resolve happens when the async call returns. We define on what condition the promise resolves.
+    - then is where we define what to do when promise is resolved. At the time of executing `then` the promise can either be resolved or not. We shouldn't care.  
+
+
+## Links and readings:
+* [Javascript Promises - Udacity](https://www.udacity.com/course/javascript-promises--ud898)
+* [JavaScript Promises - Jake Archibald](https://developers.google.com/web/fundamentals/primers/promises)
+* [States and Fates](https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md)
+
+
+
