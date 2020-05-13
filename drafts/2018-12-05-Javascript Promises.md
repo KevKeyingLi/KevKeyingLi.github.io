@@ -1,5 +1,7 @@
 # Javascript Promises
-This is the learning note for Udacity course [Javascript Promises](https://www.udacity.com/course/javascript-promises--ud898)
+The first part of this is the learning note for Udacity course [Javascript Promises](https://www.udacity.com/course/javascript-promises--ud898)
+
+After that, I have added more notes around Promise that I have learned elsewhere. 
 
 # Overview
 Promises is recomended way to handle asynchronous events in javascripts, according to MDN: *The Promise object represents the eventual completion (or failure) of an asynchronous operation, and its resulting value.* 
@@ -141,6 +143,11 @@ returns an array of values in the same order as the original array of promises
 if all resolve, this resolves. 
 
 
+#### Promise.race()
+returns a promise that fulfills or rejects as soon as one of the promises in an iterable fulfills or rejects, with the value or reason from that promise.
+
+basically returns the first promise to have resolved or rejected. 
+
 # Web read on `await` and `async` 
 https://javascript.info/async
 ## async function
@@ -198,11 +205,30 @@ async function f() {
     - resolve is determined by the what we write in the Promise constructor callback function. When used for async call, resolve happens when the async call returns. We define on what condition the promise resolves.
     - then is where we define what to do when promise is resolved. At the time of executing `then` the promise can either be resolved or not. We shouldn't care.  
 
+### Syntax summary
+#### Initialization/Promise wraping
+const p = new Promise((resolve, reject) => {
+    //in some case resolve
+    resolve(resolveValue);
+    //in some cases reject
+    reject(rejectValue);
+});
+
+#### Handling/Chaining
+p.then((resolveValue) => {}, (rejectValue) => {}).catch((moreRejectValue) => {}).finally(() => {});
+
+#### Static methods
+* Promise.all(iterable)
+* Promise.allSettled(iterable)
+* Promise.race(iterable)
+* Promise.reject(reason)
+* Promise.resolve(value)
 
 ## Links and readings:
 * [Javascript Promises - Udacity](https://www.udacity.com/course/javascript-promises--ud898)
 * [JavaScript Promises - Jake Archibald](https://developers.google.com/web/fundamentals/primers/promises)
 * [States and Fates](https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md)
+* [MDN Promise Doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 
 
