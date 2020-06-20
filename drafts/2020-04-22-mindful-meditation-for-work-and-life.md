@@ -180,7 +180,7 @@ Imagine your most respected, loved, cared person sitting across from you. See cl
 
 Then imagine someone annoys you, not someone that you hated the most, but someone you don't like, 4 out of 10 dislikeness. and do the same thing.
 
-## Singing Hu(Hew)
+## Singing Hu(Hue)
 
 A mental model: The physical, mental, the emotional can be terrible drivers of my life. There's a higher part of each one of us. It's the part of us that is infinite, connected, and knowing. 
 
