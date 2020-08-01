@@ -7,6 +7,8 @@ Gene editing, Gene therapy, potentially genetic enhancements(with radical ideolo
 ## Brain Computer Interface to change human computer interaction
 Revolutionize human computer interaction from physically typing, clicking, tabbing, seeing, hearing, reading to mentally two way signaling. 
 
+A whole other level from the VR/AR/MR we dream of today. 
+
 Interpersonal interaction will advance from phone call, text message, video chat to a whole new level of mind sharing.
 
 Human will need to find ways and learn to share what they want, and protect what they don't want to share. (Like in Inception)
