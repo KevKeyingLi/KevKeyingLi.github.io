@@ -1,10 +1,10 @@
 # Interpersonal Communication - lkdn lrng
 ## Communicating with your colleagues
 ### 1 How to make requests effectively
-* First, where possible, it's always a good idea to dig your well before you're thirsty, as the business author Harvey Mackay put it. In other words, try to **invest in a favor bank** before you need to withdraw from it.
+* **Always be helpful to others** First, where possible, it's always a good idea to dig your well before you're thirsty, as the business author Harvey Mackay put it. In other words, try to **invest in a favor bank** before you need to withdraw from it.
 * Next, in the moment when you do have a request make sure you **explain the context**. Let's say you'd like them to stay late at work to help you finish up a report. If they don't know the full story, they may think you were just irresponsible
 * You also want to be sure to **acknowledge that their assistance is a favor**.e.g. *"Thank you for the favor. It means a lot to me."*
-* Indicate where your interests align. e.g. *Thanks for your help with this. This report will be critical for the meeting tomorrow and if we can get the new budget approved it will be terrific news for both our departments."*
+* **Indicate where your interests align**. e.g. *Thanks for your help with this. This report will be critical for the meeting tomorrow and if we can get the new budget approved it will be terrific news for both our departments."*
 * **Express genuine gratitude** It means more if you detail exactly what they did and why it mattered to you. You could say, e.g. *"Thanks so much for staying late last night. I know it was short notice and you're really busy. The edits you made to the report really tightened it up and made it more effective and _I couldn't have done_ the graphic work without you. _You made the report a lot stronger and I know the whole team appreciates it_."*
 
 The days of ordering people around are gone. Instead, we have to persuade them to want to collaborate with us.
