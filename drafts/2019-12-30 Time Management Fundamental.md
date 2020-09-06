@@ -1,8 +1,8 @@
-2019-12-30 Time Management Fundamental
+# 2019-12-30 Time Management Fundamental
 
-## 
+ 
 
-3 principles
+## 3 principles
 * space
 * mind
 * time
@@ -85,7 +85,7 @@ Six gathering points he recomemnds:
 5. One voicemail
 6. OPTIONAL: Wild card
 
-~My note: from his recommendation: there is no need for anything at home...~
+~~My note: from his recommendation: there is no need for anything at home...~~
 Scratch that, he later mentioned work vs personal. 
 ## 3.3 Setting up an inbox gathering point.
 Anything out of place/unresolved/don't have a scheduled time. 
@@ -165,7 +165,7 @@ To have a system that helps with taking all the ideas that pops into one's mind 
 
 use the approved gathering points. 
 
-When a though come up, write a note, and toss it into inbox. 
+When a thought come up, write a note, and toss it into inbox. 
 
 if you find out you process some certain gathering point better then others. **Put unresolved ideas into your favorite gathering point**
 
@@ -229,19 +229,14 @@ Say no more often than you say yes. Tactically and gracefully.
 3. if not now, when? 
 
 ## say no to yourself
-1. create a perhaps list. Ideas that are not commited, have no immediate impact, and but you are interested. 
-
-Review the list every 1~3 month. 
-
-
+1. create a perhaps list.
+  - Ideas that are not commited, have no immediate impact, and but you are interested. 
+  - Review the list every 1~3 month. 
 2. When? ask yourself when you will be able to do it. 
-
-Do I need to do this now, or can I do it later. 
-
-Don't think in terms of days/weeks. Think of in months, years...
+  - Do I need to do this now, or can I do it later. 
+  - Don't think in terms of days/weeks. Think of in months, years...
 
 Ask when is the latest I can complete this? -> focus on current tasks, and not distracted by other ideas. 
-
 
 # 6 Eqquipping yourself for action
 Before going into next chapter
@@ -267,13 +262,13 @@ Now we start taking actions, start from gathering.
 reduce number of physical gathering points. 
 
 **Processed** means: you know what to do with it, you know when to do it, and you know where it belongs
-**Unprocessed**: any one of the three things above is missing, what, when, where, it's unprossessed, and we need to gather it. 
+**Unprocessed** any one of the three things above is missing, what, when, where, it's unprossessed, and we need to gather it. 
 
 **Everything has a home, and no visitors allowed.**
 
 If something is in its correct home, it's where it belongs, it's processed and don't need gathering. 
 
-Set up a temporary box: One week box. For each item, if you'll need to use this or take care of this during the next week, put it into the one week box. This box is where you'll start processing. 
+Set up a temporary box: **One week box**. For each item, if you'll need to use this or take care of this during the next week, put it into the one week box. This box is where you'll start processing. 
 
 Other things go to other boxes. 
 

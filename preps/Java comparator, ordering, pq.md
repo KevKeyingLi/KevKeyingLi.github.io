@@ -1,4 +1,6 @@
-## Object.compareTo()
+## Comparable.compareTo()
+Compares this object with the specified object for order. Returns a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object.
+o1.compareTo(o2): `>0`means o1 > o2
 
 ## Comparator
 [Java 8 doc](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html)
@@ -23,6 +25,19 @@ initialize sorted data structure:
 * `TreeMap(Comparator<? super K> comparator)`
 * `TreeSet(Comparator<? super E> comparator)`
 
+### Other 
+Util funcs:
+
+Use the Comparator utility methods
+* comparing => returns a comparator
+* thenComparing (for chaining comparators) => returns a comparator used in chaining
+
+```
+Comparator sortByLongitude = Comparator.comparing(Locations::getLongitude()); // => this returns a Comparator that can be used in Collections.sort
+Comparator groupSort = Comparator.comparing(Locations::getLongitude).thenComparing(Locations::getDate()).thenComparing(Locations::getId()); //=> sort first by longitude, then by date and then finalize with a sort by ID;
+//Reverse order
+Comparator groupSortReversed = Comparator.comparing(Locations::getLongitude).reversed();
+```
 ### Templates
 #### Inline Style with Anonymous Class 
 ```
