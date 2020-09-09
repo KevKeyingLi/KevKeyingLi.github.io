@@ -53,6 +53,37 @@ $.each(array, function(key, val) {
 
 
 JQuery could have a lot of names for the same thing. 
+
+### Describe when you should use the bind() method
+Tests two key concepts:
+* `this` key word
+* data binding of javascript
+
+* `this` means different things depending on the context
+* meaning of `this` can be redefined by `bind()`
+
+Remember a simple example:
+`yourGetName = myModule.getName.bind(yourModule)`
+
+When `this` is not specified or bind, by default, `this = Window`. The window object. 
+
+Resources:
+* MDN
+* JavaScript Essential Training
+* JavaScript: Functions
+* ES6: The Right Parts
+
+### Conditional Operator
+`? : ` 
+* ternary shortcut
+* Chainable
+* But super confusing. Don't chain/nest too much. 
+
+`EP035b`
+
+### Have you used AJAX to load an exteranl file?
+
+
 ## Tasks
 
 ## Interviews with Working Professionals

@@ -1,11 +1,14 @@
 # 2019-12-30 Time Management Fundamental
 
- 
+## 0 Intro
 
 ## 3 principles
 * space
 * mind
 * time
+
+Chapter 1 to 6 go through the concepts and principles
+Chapter 7 to 10 are action guide with examples
 
 # 1 laying the Productivity Groundwork
 * Recommend this course to be finished in 1 or 2 sitting. 
@@ -228,17 +231,19 @@ Say no more often than you say yes. Tactically and gracefully.
 2. When say "yes", ask when.
 3. if not now, when? 
 
-## say no to yourself
-1. create a perhaps list.
-  - Ideas that are not commited, have no immediate impact, and but you are interested. 
-  - Review the list every 1~3 month. 
-2. When? ask yourself when you will be able to do it. 
-  - Do I need to do this now, or can I do it later. 
-  - Don't think in terms of days/weeks. Think of in months, years...
+## Say no to yourself
+### 1.create a perhaps list. 
+* Ideas that are not commited, have no immediate impact, and but you are interested. 
+* Review the list every 1~3 month. 
 
-Ask when is the latest I can complete this? -> focus on current tasks, and not distracted by other ideas. 
 
-# 6 Eqquipping yourself for action
+### 2.When? ask yourself when you will be able to do it. 
+* Do I need to do this now, or can I do it later. 
+* Don't think in terms of days/weeks. Think of in months, years...
+* Ask when is the latest I can complete this? -> focus on current tasks, and not distracted by other ideas. 
+
+
+# 6 Equipping yourself for action
 Before going into next chapter
 * ensure you are in your workspace
 * Budget time. best one sitting, may take multiple hours. 
@@ -261,8 +266,8 @@ Now we start taking actions, start from gathering.
 
 reduce number of physical gathering points. 
 
-**Processed** means: you know what to do with it, you know when to do it, and you know where it belongs
-**Unprocessed** any one of the three things above is missing, what, when, where, it's unprossessed, and we need to gather it. 
+**Processed** means: you know *what* to do with it, you know *when* to do it, and you know *where* it belongs
+**Unprocessed**: any one of the three things above is missing, **what, when, where**, it's unprossessed, and we need to gather it. 
 
 **Everything has a home, and no visitors allowed.**
 
@@ -410,7 +415,7 @@ when you're answering the "Where is its home" processing question
 
 In the end, we want to be able to put things away quickly, and find them just as quickly.
 
-### Rule of thums
+### Rule of thumbs
 1. remember this phrase. "Everything has a home, and no visitors allowed." 
     - This means that items of similar type should be grouped together, and kept separate from everything else. This makes it much more efficient and easy to find things and put things away in the future.
     - What kind of home should you use? Well, you can use things like folders, boxes, trays, shelves. The tool you use can be flexible, as long as you create clear boundaries between different items, and don't mix them together.
@@ -698,26 +703,58 @@ Also, I'd recommend that you create an action item for yourself to **review the 
 
 # Bonus Story
 ## Dave Crenshaw on getting himself organized
-So, before I got organized myself I was one of the most chaotic people you ever would meet. My wife can verify that. I was jumping all over the place, from career to career; my workspace was disorganized. You used to have to use a shovel to get from the front door of my office to my desk. It was extremely chaotic.
+> So, before I got organized myself I was one of the most chaotic people you ever would meet. My wife can verify that. I was jumping all over the place, from career to career; my workspace was disorganized. You used to have to use a shovel to get from the front door of my office to my desk. It was extremely chaotic.
+> 
+> And the turning point for me is when I heard two words, and the two words were "I'm pregnant". And as a young married man, those really opened my eyes. I realized suddenly I couldn't just float around enjoying my day quite to the degree. I had to really think about the fact that here comes a new life into our family and I needed to provide for him. 
+> 
+> And it was at that point that I went and saw a psychologist. He gave me a couple of tests, and at the end of the test he looked at and he said, "Has anyone ever talked to you about ADHD?" And I said, "Well, no, that's not really me." And he said, "You are off the charts ADHD. "If there were a fit standard deviation "you'd be in it. "I can say with 99.99% accuracy you've got it." And that really opened my eyes.
+> 
+> I now had something to work on, a name and a face to a challenge, and I applied my background, which is actually an entrepreneurship in business systems. And I applied that mindset of systems to my very personal challenge of a lack of focus. 
+> 
+> So I think the people who will benefit most from this course are people who are struggling with productivity or organization to some degree right now. What I call the "nomads", the people who are inherently organized but got off track, or the "chaos masters", the people who are inherently chaotic. It's not to say that "focus masters", people who are inherently organized and productive, can't benefit from it. But I encourage people who are in that place - and boy, what a great blessing they have to be that organized - that they look at this course from the standpoint of how they can teach others to be that organized and that productive.
+> 
+> I've found there's real power in having accountability. If I did not have a coach - and I have a business coach who follows up with me - I'd fall back into the old patterns. So, I report to him on a regular basis. The same numbers that I ask my clients to report to me I report to him, and he checks in on me every once in a while. I've seen lots of people who teach one thing and end up living something else, and I wanted to make sure that I was somebody who practiced what I preach.
+> 
+> So, while this certainly has a very direct impact on the workday, it helps people in their everyday life. Every day we have the opportunity to focus or not focus on friends and family. They want to talk to us. But if we're in a state of switch-tasking where we're constantly looking at our phones, or looking at something else and not focusing on them, in a real way we're hurting that relationship. So, this program is also an opportunity to increase the power of the relationships that you have by better focusing on people.
+> 
+> What makes my day is hearing people who come to lynda.com, they go through the course, and then they'll send me a nice message of something like "this has changed my life", "I was out of control", "I wasn't able to focus", "my career was going all over the place", and that this course helped them get on track. That really makes my day. Also when I hear people who talk about how they're better able to focus on relationships. That really is kind of an underlying bonus of going through this course, is the ability to improve the relationships with your family, with your loved ones. For me, in the end, being able to be there for your family and spend time with them is what this is all about.
 
-And the turning point for me is when I heard two words, and the two words were "I'm pregnant". And as a young married man, those really opened my eyes. I realized suddenly I couldn't just float around enjoying my day quite to the degree. I had to really think about the fact that here comes a new life into our family and I needed to provide for him. 
+# My Notes
 
-And it was at that point that I went and saw a psychologist. He gave me a couple of tests, and at the end of the test he looked at and he said, "Has anyone ever talked to you about ADHD?" And I said, "Well, no, that's not really me." And he said, "You are off the charts ADHD. "If there were a fit standard deviation "you'd be in it. "I can say with 99.99% accuracy you've got it." And that really opened my eyes.
+## 3 Principles:
+* Space: As few gathering points as possible.
+* Mind: Your mind is not a gathering point, keep it clear
+* Time: create budget to spend time on those Most Valuable Activities, and set boundaries.
 
-I now had something to work on, a name and a face to a challenge, and I applied my background, which is actually an entrepreneurship in business systems. And I applied that mindset of systems to my very personal challenge of a lack of focus. 
+Gathering point: a place to gather unprocessed items. Keep the number down. 
+Processing is not completing tasks. 
 
-So I think the people who will benefit most from this course are people who are struggling with productivity or organization to some degree right now. What I call the "nomads", the people who are inherently organized but got off track, or the "chaos masters", the people who are inherently chaotic. It's not to say that "focus masters", people who are inherently organized and productive, can't benefit from it. But I encourage people who are in that place - and boy, what a great blessing they have to be that organized - that they look at this course from the standpoint of how they can teach others to be that organized and that productive.
+Processing principle: Everything has a home, and no visitors allowed. 
 
-I've found there's real power in having accountability. If I did not have a coach - and I have a business coach who follows up with me - I'd fall back into the old patterns. So, I report to him on a regular basis. The same numbers that I ask my clients to report to me I report to him, and he checks in on me every once in a while. I've seen lots of people who teach one thing and end up living something else, and I wanted to make sure that I was somebody who practiced what I preach.
+Unprocessed -> what, when, where -> processed
+* what: 
+  - take the itme to think
+  - disengage and delegate if necessary
+  - Sometimes you need to wait: ask when will it be done.
+* when:
+  - be specific: date and time
+    + now? if in 5 min or less
+    + calendar it if it's more than 15 min
+    + use task reminder for everything else
+  - group repetitive tasks
+  - leave space between appointments
+* where
 
-So, while this certainly has a very direct impact on the workday, it helps people in their everyday life. Every day we have the opportunity to focus or not focus on friends and family. They want to talk to us. But if we're in a state of switch-tasking where we're constantly looking at our phones, or looking at something else and not focusing on them, in a real way we're hurting that relationship. So, this program is also an opportunity to increase the power of the relationships that you have by better focusing on people.
-
-What makes my day is hearing people who come to lynda.com, they go through the course, and then they'll send me a nice message of something like "this has changed my life", "I was out of control", "I wasn't able to focus", "my career was going all over the place", and that this course helped them get on track. That really makes my day. Also when I hear people who talk about how they're better able to focus on relationships. That really is kind of an underlying bonus of going through this course, is the ability to improve the relationships with your family, with your loved ones. For me, in the end, being able to be there for your family and spend time with them is what this is all about.
-
-
+Processing schedule: bring each of your six approved gathering points to zero at least once per week. 
+* 5 hr/week
+* one hr at a time.
 
 
+Cultivate the habit of clearing your mind immediately. Your mind is not an acceptable gathering point.
+Make your calendar a solid, firm commitment of how you're going to spend your time.
+Use a perhaps list for intereted ideas that doesn't have immediate impact. 
 
+TODO next to review: 9 Processing Email
 
 
 
