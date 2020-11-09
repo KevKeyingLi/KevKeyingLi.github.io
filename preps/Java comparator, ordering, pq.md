@@ -75,3 +75,6 @@ PriorityQueue<E> pq = new PriorityQueue<E>(initialCap, new )
 ## PQ
 order direction!!!
 
+## Arrays.sort() Collections.sort()
+### reverse order
+Arrays.sort(nums, Collections.reverseOrder());

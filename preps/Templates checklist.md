@@ -1,6 +1,15 @@
 # Binary Search
+https://github.com/labuladong/fucking-algorithm/blob/master/%E7%AE%97%E6%B3%95%E6%80%9D%E7%BB%B4%E7%B3%BB%E5%88%97/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE%E8%AF%A6%E8%A7%A3.md
+
+This is good for solving:
+* find target/insertion point/start&end point of a interval
+
+
 ## `while (l < r)`
-This requires moving left/low pointer to `mid+1` everytime. Following is a snippet for finding target/insertion point in none duplicated sorted array. 
+`l < r` represents half open half close interval. I prefer to use left open right closed interval: `l = mid + 1`. 
+
+
+Following is a snippet for finding target/insertion point in non-duplicated sorted array. 
 ```
     public int searchInsert(int[] nums, int target) {
         if (nums == null || nums.length == 0)
@@ -24,17 +33,146 @@ This requires moving left/low pointer to `mid+1` everytime. Following is a snipp
     }
 ```
 
-This is good for solving:
-* find target/insertion point
+## `while (l <= r)`
+*  `while (l <= r)` is for a closed interval: `[l, r]`, element `l` and `r` are potential target
+* the terminate condition is `l == r + 1`. b/c this means the interval doesn't contain any potential target
+* To make the range qualify a closed interval， every loop we do `l = mid + 1` or `r = mid - 1`;
+
+
+## Variations
+Base scenario: find element in  
+
+* find boundary of a range/target
+* with duplication
+* with rotated
+
+## Mistakes
+* array
+    - index out of bound
+    - range of elements
+    - duplication
+    - order of elements
+* coding mistake
+    - use `l`, `r`, `mid` as element, instead of `nums[l]`...
+
+
 
 
 # Sorting
 ## Merge Sort
 ## Heap Sort
 ## Quick Sort
+### Quick select
+Two sub-routines:
+* Partition: given a range, select one element as pivot(arbitrarily last one, or a random one.) Move elements smaller than it to it's left by swapping
+* kthSmallest(arr, l, r, k): get the index of pivot element from partition, if it matches k, return; if not, search for k in new sub-range. 
+
+```
+class GFG { 
+    // Standard partition process of QuickSort. 
+    // It considers the last element as pivot 
+    // and moves all smaller element to left of 
+    // it and greater elements to right 
+    public static int partition(Integer[] arr, int l, 
+                                int r) 
+    { 
+        int x = arr[r], i = l; 
+        for (int j = l; j <= r - 1; j++) { 
+            if (arr[j] <= x) { 
+                // Swapping arr[i] and arr[j] 
+                int temp = arr[i]; 
+                arr[i] = arr[j]; 
+                arr[j] = temp; 
+  
+                i++; 
+            } 
+        } 
+  
+        // Swapping arr[i] and arr[r] 
+        int temp = arr[i]; 
+        arr[i] = arr[r]; 
+        arr[r] = temp; 
+  
+        return i; 
+    } 
+  
+    // This function returns k'th smallest element 
+    // in arr[l..r] using QuickSort based method. 
+    // ASSUMPTION: ALL ELEMENTS IN ARR[] ARE DISTINCT 
+    public static int kthSmallest(Integer[] arr, int l, 
+                                  int r, int k) 
+    { 
+        // If k is smaller than number of elements 
+        // in array 
+        if (k > 0 && k <= r - l + 1) { 
+            // Partition the array around last 
+            // element and get position of pivot 
+            // element in sorted array 
+            int pos = partition(arr, l, r); 
+  
+            // If position is same as k 
+            if (pos - l == k - 1) 
+                return arr[pos]; 
+  
+            // If position is more, recur for 
+            // left subarray 
+            if (pos - l > k - 1) 
+                return kthSmallest(arr, l, pos - 1, k); 
+  
+            // Else recur for right subarray 
+            return kthSmallest(arr, pos + 1, r, k - pos + l - 1); 
+        } 
+  
+        // If k is more than number of elements 
+        // in array 
+        return Integer.MAX_VALUE; 
+    } 
+  
+    // Driver program to test above methods 
+    public static void main(String[] args) 
+    { 
+        Integer arr[] = new Integer[] { 12, 3, 5, 7, 4, 19, 26 }; 
+        int k = 3; 
+        System.out.print("K'th smallest element is " + kthSmallest(arr, 0, arr.length - 1, k)); 
+    } 
+} 
+
+```
 ## Patience Sort
 
-# Sliding Window
+# Sliding Window & Two Pointers
+base case two pointers, right pointer extends, left pointer retracts based on conditions. 
+
+[209. Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/submissions/)
+
+```
+        ...
+        int l = 0, r = 0;
+        // [ l, r): left closed, right open interval
+        //l is next to delete, r is next to add
+        //len of interval: r - l
+        int sum = 0;
+        while (r < nums.length) {//conditioned on right pointer
+            //The operation of extending right pointer, one at a time
+            //e.g. sum += nums[r];
+            r++;
+            //test condition and retract left pointer
+            while (l < r && sum - nums[l] >= s) {
+                //The operation of retract left pointer
+                //e.g. sum -= nums[l];
+                l++;
+                //Additional logics if needed
+            }
+            // additional logics for each step.
+            ...
+            //register a local solution
+            //e.g.
+            // minLen = Math.min(minLen, r - l);
+        }
+        ...
+
+```
+
 
 # Binary Tree
 ## Traversal

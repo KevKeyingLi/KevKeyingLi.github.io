@@ -98,13 +98,147 @@ the strategy pattern, which shows us how to separate out an object's behavior. I
 ## The Strategy Pattern
 ### Revisiting inheritance
 
-Inheritance is one of the core concepts of object-oriented design. Through inheritance, you can express class relationships that allow you to reuse and extend the behavior and properties of other classes. Typically you think of one class inheriting from another if they share an IS-A relationship.
+Inheritance is one of the core concepts of object-oriented design. Through inheritance, you can express class relationships that allow you to reuse and extend the behavior and properties of other classes. Typically you think of one class inheriting from another if they share an **IS-A relationship**.
 
 main benefit of inheritance: **code reuse**
 
-
+#### Don't overuse
 Inheritance is a powerful technique, and there are many designs where inheritance is exactly the right choice. <-> While inheritance is a core concept in object-oriented programming, it's also easy to overdo inheritance and make it the basis of all your object-oriented design.
 
 **if all your class relationships are IS-A relationships, take a closer look at your design.**
 
 **overuse inheritance**: inflexible and difficult to change
+
+### Limitations of inheritance
+#### Example: design classes for duck simulator
+
+* Duck: abstract
+    - quack()
+    - swim()
+    - display(): abstract
+* MallardDuck
+    - display(): implementation
+* RedheadDuck
+    - display: impl
+
+This looks fine and works fine until it doesn't
+* what if we need a rubberDuck class, it doesn't quack
+    - implement a quack in RuberDuck and override the super class's quack
+* new feature request for Ducks to fly.
+    - add `fly()` to base class Duck
+    - override it in RubberDuck since it doesn't fly
+* new duck type: DecoyDuck requested
+    - need to override `fly()` and `quack()` again.
+
+
+The problem with this design: 
+* need to override inheritance for some ducks for fly and quack
+* duplicated code for overriding fly and quack
+hard to gain knowledge of all ducks from the abstract class
+* changes to base class requires changes to other ducks
+* hard to change runtime behavior
+
+### Trying interfaces
+* an interface defines the methods an object must implement in order to be a particular type. 
+* An interface is an abstract type that specifies a behavior that classes must implement
+* interfaces allow different classes to share similarities
+* not all classes need to have the same behavior
+#### Rework the duck example with interfaces
+Interface Flyable
+* fly()
+Interface Quackable
+* quack()
+Class Duck
+* swim()
+* display()
+
+MallardDuck extends Duck implements Flyable, Quackable
+
+Problem with this approach:
+* destroys code reuse, each duck will need to implement it's only fly and quack. 
+* change to fly or quack would cause maintenance nightmare
+* still not ally runtime change to behavior
+    - how to simulate a duck to acquire ability to fly, or lose it during runtime.
+
+### Get inspiration from design principles
+#### 1. A review of our attempts
+
+* inheritnace didn't work well
+    - Behavior changes across subclasses and it's not appropriate for all subclasses to have all behaviors
+* interfaces didn't work well
+    - interfaces supply no implementation and destroy code reuse.
+
+#### 2. revisit design principles
+
+Encapsulate what varies: Identify the aspects of your application that vary and separate them from what stays the same.
+* if some aspect of your code is changing that's a sign you should pull it out and separate it.
+* by separating these parts, you can extend or alter them without affecting the rest
+* this principle of what varies is fundamental
+
+#### 3. go back to our design
+* swim doesn't vary across classes
+* fly and quack is changing for different ducks, so we need to extract it from the rest of the code.
+* display is implemented in each duck
+
+
+#### 4. another design principle
+Program to an Interface, Not an implementation: clients remain unaware of the specific types of bojects they use, as long as the objects adhere to the interface that clients expect.
+
+### Programing to an interface
+new implementation after reviewing two principles
+
+Interface FlyBehavior
+* fly()
+
+Class Quack
+Class Squeak
+Class Mute
+
+Interface QuackBehavior
+* Quack()
+
+Class FlyWithWings
+Class FlyNoWay
+
+Class Duck
+* FlyBehavior flyBehavior
+* QuackBehavior quackBehavior
+* setFlyBehavior()
+* setQuackBehavior()
+* performQuack()
+* performFly()
+* swim()
+* display()
+
+#### My Note
+* Having behaviors as a member not a interface, transforms **Is-A** relationship to **Has-A** relationship. 
+* somewhat composition over inheritance
+
+### Applying the principles
+A java implementation of this design.
+
+### exploring the strategy pattern
+Pulling out fly and quack behaviors from inheritance, and instead compose these behaviors with duck. 
+* more flexible 
+* more resillient to change. 
+
+The class diagram of strategy pattern:
+
+We have an inheritance hierarchy that defines the type of the objects that need a behavior and we have a HAS-A relationship between those objects and their behaviors. These behaviors can be anything. Any algorithm that an object might need to perform. 
+By moving these algorithms out from the main inheritance hierarchy, we get the benefit of being able to choose which algorithm each object gets. We can change these algorithms at runtime and if multiple objects need to use the same algorithm, we get the benefit of code reuse too
+
+The official definition of **the strategy pattern**:
+The strategy pattern defines a family of algorithms, encapsulates each one and makes them interchangeable. Strategy lets the algorithm vary independently from clients that use it. 
+
+**a family of algorithms** can be considered a strategy.
+
+### Why HAS-A is better than IS-A
+IS-A: inheritance
+HAS-A: composition
+
+when you put two classes together, with composition, instead of inheriting behavior, an object can then instead delegate that behavior, to the composed object.
+
+#### Principle
+Favor composition over inheritance: classes should achieve code reuse using composition rather than inheritance from a superclass.
+
+composition generally leads to a more flexible design, and is often used as a design technique in a lot of design patterns.
