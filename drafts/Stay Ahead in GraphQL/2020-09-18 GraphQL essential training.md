@@ -408,9 +408,96 @@ const userType = new graphql.GraphQLObjectType({
     }
 });
 
+```
 
-## Setting Up Persistence
+
+## 3 Setting Up Persistence
+Persistence generally means database
+### Installing Mongo for GraphQL
+* Install brew, MongoDB
+* create folder for db `sudo mkdir -p /data/db`, `sudo chmod 777 /data/db`
+* `mogod`
+* install `mongoose` `npm install --save mongoose`
+### Final setup of Mongo with GraphQL
+* refactor directory structure
+    - new folder `data`
+    - move resolvers.js into `data`
+    - move schema.js into data
+    - update dependencies of imports
+* new file `dbConnectors.js`
+```
+import mongoos from 'mongoose';
+//Mongo connection
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost/friends', {
+    useMongoClient: true
+});
+
+const friendSchema = new mongoose.Schema({
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    gender: {
+        type: String
+    },
+    age: {
+        type: Number
+    },
+    language: {
+        type: String
+    },
+    email: {
+        type: String
+    },
+    contacts: {
+        type: Array
+    }
+});
+
+export const Friends = mongoose.model('friends', friends);
+```
+* In `resolver.js`, import mongoose, Friends and update query and mutation.
+  
+
+### Data persistence with SQL
+* `npm install --save casual lodash sequelize sqlite`
+    - casual: dummy data
+    - lodash
+    - sequelize: for creating and generate database
+    - sqlite: sql inside of local project. 
+* import loadash, Sequelize, casual
+* define SQL schema
+```
+const sequelize = new Sequelize('database', null, null {
+    dialect: 'sqlite',
+    storage: './aliens.sqlite'
+});
+
+const Aliens = sequelize.define('aliens', {
+    firstName: { type: Sequelize.STRING},
+    ...
+});
+
+Aliens.sync({ force: true }).then(() => {
+    lodash.times(10, (i) => {
+        Aliens.create({
+            firstName: casual._first_name,
+            ...
+        });
+    });
+});
+
+export {Aliens};
+```
+* update graphql schema
+
 ## Mutations
+run `npm start` to test the project so far. 
+
+
 ## Queries in Depth
 ## Next steps
 * graphql doc

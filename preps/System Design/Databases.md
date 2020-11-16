@@ -64,7 +64,7 @@ Best for
 * games
 * IOT
 * best place to start
-Not ideal for a lot of disconnected/related data that are updated often, like GRAPHS: social media of friend network + comments. Not easily done on a document database at scale. 
+Not ideal for a lot of disconnected/related data that are updated often, like GRAPHS: social media of friend network + comments. Not easily done on a document database at scale.
 
 ## Relational database
 * MySQL
@@ -101,6 +101,7 @@ Best for:
 Graphs
 Knowledge graphs
 Recommendation engines
+
 ## Search
 Full text search engine, based on apache lucene
 * elastic
@@ -108,14 +109,13 @@ Full text search engine, based on apache lucene
 * algolia: a cloud version
 * meilisearch: a rest based full text search engine
 
- From dev point of view, operation is like document database, documents are added to indexes. But under the hood, it creates indexes for all searchable terms.
+From dev point of view, operation is like document database, documents are added to indexes. But under the hood, it creates indexes for all searchable terms.
 
 Indexing adds a lot of overhead, and could be very expensive to run at scale.
 
 Best for
 * search engines
 * typeahead search feature for good UX
-
 
 ## Multi model database
 * Fuana db
