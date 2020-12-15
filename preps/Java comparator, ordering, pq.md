@@ -78,3 +78,5 @@ order direction!!!
 ## Arrays.sort() Collections.sort()
 ### reverse order
 Arrays.sort(nums, Collections.reverseOrder());
+
+**Caveat: nums need to be an array of objects, not primitve type**

@@ -11,6 +11,7 @@ Topological sort can also be seen as related to dead lock problem, since both ar
 
 
 ## Implementation Gists
+### DFS
 Basic idea is DFS on DAG, add node to head of list, when the node is finished(meaning, all children are visited). 
 
 * use DFS, a stack, an array/hashmap/hashset storing visited state. 
@@ -19,5 +20,9 @@ Basic idea is DFS on DAG, add node to head of list, when the node is finished(me
 
 DFS: time O(V+E)
 
-### The idea of this solution
-Isolation of dependency
+The idea of this solution: Isolation of dependency
+
+### BFS
+
+* iterate through the nodes and find source nodes: nodes that has 0 in degree
+* BFS from these source nodes, visit and remove each source node, add new source nodes.

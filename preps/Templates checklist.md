@@ -139,12 +139,15 @@ class GFG {
 
 ```
 ## Patience Sort
+# substrings
+https://leetcode.com/problems/minimum-window-substring/discuss/26808/Here-is-a-10-line-template-that-can-solve-most-'substring'-problems
 
 # Sliding Window & Two Pointers
 base case two pointers, right pointer extends, left pointer retracts based on conditions. 
 
 [209. Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/submissions/)
 
+## The simple template
 ```
         ...
         int l = 0, r = 0;
@@ -172,8 +175,25 @@ base case two pointers, right pointer extends, left pointer retracts based on co
         ...
 
 ```
+## The complex template - TODO
+https://leetcode.com/problems/find-all-anagrams-in-a-string/discuss/92007/sliding-window-algorithm-template-to-solve-all-the-leetcode-substring-search-problem 
+## Common Issues
+* Mistake: use index value `l` `r` in place of real values `nums[l]`, `num[r]`
 
+## Problems
+* [904. Fruit Into Baskets](https://leetcode.com/problems/fruit-into-baskets/): basic sliding window
+* [1248 Count Number of Nice Subarrays](https://leetcode.com/problems/count-number-of-nice-subarrays/): good basic sliding window with a simple/nice twist
+* [1234 Replace the Substring for Balanced String](https://leetcode.com/problems/replace-the-substring-for-balanced-string/): good basic sliding window with a interesting twist
+* [1004 Max Consecutive Ones III](https://leetcode.com/problems/max-consecutive-ones-iii/) good basic sliding window with a simple/nice twist
+* [930 Binary Subarrays With Sum](https://leetcode.com/problems/binary-subarrays-with-sum/): basic+tricky twist
+* [992 Subarrays with K Different Integers](https://leetcode.com/problems/subarrays-with-k-different-integers/): Hard+classic
+* [862 Shortest Subarray with Sum at Least K](https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/): Hard+interesting
+* [209 Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/): basic
+* [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/): 
 
+Two similar problems, not so much about sliding window
+* [30. Substring with Concatenation of All Words](https://leetcode.com/problems/substring-with-concatenation-of-all-words/) hard+low rating
+* [76. Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/) hard good
 # Binary Tree
 ## Traversal
 ### Inorder
@@ -188,8 +208,21 @@ base case two pointers, right pointer extends, left pointer retracts based on co
 
 Augmented data structure: add count at each node. 
 # Tree/Graph Search
+Tree & graph basics
+Tree
+* n node with n - 1 edges
+* path from one node to other is unique
+* tree leaves have 1 connected edge
+
+Graph
+* 
+
+
+Difference between tree and graph
+* because there may be more than one path connecting two nodes, `visited` set is often used so each node is visited only once.
 ## BFS
 ## DFS
+
 
 
 ## Disjointed Set & Union Find
@@ -359,8 +392,43 @@ class UnionFind {
     }
 }
 ```
+# Backtracking
+backtracking is a subset of dfs, tree/graph traversal problems
 
+Similar problems
+* backtracking
+* subsets
+* permutation
+* combination
+
+A leetcode discussion: https://leetcode.com/problems/permutations/discuss/18239/A-general-approach-to-backtracking-questions-in-Java-(Subsets-Permutations-Combination-Sum-Palindrome-Partioning)
+
+## Key points:
+### basic logic
+1. at each recursion, pass 
+    * *results*: the collection that contains final results
+    * *current temp*: a temp state of one of the final results
+    * *the candidate pool* + *some way of determining what elements can be used*
+        - a set/list of remaining elements: this need to be updated/regenerated for each recursion, 
+        - original candidate array/list + a index if list can be processed in order
+        - original candidate array/list + an extra array `used` indicating what elements are used): versitale
+    * *other relevant information*: extra info needed for processing, for example a target in combination sum. 
+2. Only add a final result into *results* collection when a base case is reached. All other layers of recursion are for building up the *temp result*
+
+### BFS solution
+A note mentioned "DFS is well-known to solve this, but you should understand the BFS solution, which is more generic to be applied to different follow-ups"
+### Special attention
+
+## Problems
+https://leetcode.com/problems/subsets/
+Subsets II (contains duplicates) : https://leetcode.com/problems/subsets-ii/
+Permutations : https://leetcode.com/problems/permutations/
+Permutations II (contains duplicates) : https://leetcode.com/problems/permutations-ii/
+Combination Sum : https://leetcode.com/problems/combination-sum/
+Combination Sum II (can't reuse same element) : https://leetcode.com/problems/combination-sum-ii/
+Palindrome Partitioning : https://leetcode.com/problems/palindrome-partitioning/
 # Monotone Stack
+There is another note for Mono-stack. preps/algos/Monotone Stack.md
 ## Problems
 https://leetcode.com/problems/sum-of-subarray-minimums/
 ## Explanations
