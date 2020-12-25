@@ -1,5 +1,9 @@
 # Table of contents
 * [7 Database paradigms - Youtube](./Databases.md#7-database-paradigms---youtube)
+* [ACID](./Databases.md#ACID)
+
+
+# ACID
 
 # [7 Database paradigms - Youtube](https://www.youtube.com/watch?v=W2Z7fbCLSTw&ab_channel=Fireship)
 
