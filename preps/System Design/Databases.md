@@ -1,3 +1,6 @@
+# Table of contents
+* [7 Database paradigms - Youtube](./Databases.md#7-database-paradigms---youtube)
+
 # [7 Database paradigms - Youtube](https://www.youtube.com/watch?v=W2Z7fbCLSTw&ab_channel=Fireship)
 
 ## key-value database
