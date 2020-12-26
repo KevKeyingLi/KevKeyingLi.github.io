@@ -13,6 +13,7 @@ This is the first note for system design. I will start using it as a initial dra
         + read/write distribution
     - login & session
     - details
+        + focus on frontend or backend
         + type of content. text, image, video
 * restate the problem, and get confirmation of assumptions
 
@@ -27,4 +28,4 @@ Example
 ### Tackle the problem
 #### start with a initial design with basic structure
 
-####
+

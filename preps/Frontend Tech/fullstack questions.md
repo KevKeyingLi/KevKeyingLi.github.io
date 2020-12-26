@@ -1,6 +1,8 @@
 # REST
 ## Principles
 ## Methods
+Think of these four methods corresponds to CRUD.
+
 |HTTP Verb|CRUD         |Entire Collection (e.g. /customers) |Specific Item (e.g. /customers/{id})|
 |-------|---------------|------------------------------------|------------------------------------|
 |POST   |Create         |201 (Created), 'Location' header with link to /customers/{id} containing new ID.|404 (Not Found), 409 (Conflict) if resource already exists..|

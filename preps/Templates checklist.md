@@ -395,6 +395,12 @@ class UnionFind {
 # Backtracking
 backtracking is a subset of dfs, tree/graph traversal problems
 
+The path of backtracking is a multi-branch decision tree, the process of backtracking is 
+* creating new node when visiting, removing node after visit.
+* pre-order decision making + post-order decision undo
+
+Similar to DP, where at each step we need to be clear of `state`, `decision`, and `base case`, for backtracking we need similar things `current decision path/state of all decisions made`, `list of options, next steps to choose from`, `terminate condition, base case`
+
 Similar problems
 * backtracking
 * subsets
@@ -403,8 +409,35 @@ Similar problems
 
 A leetcode discussion: https://leetcode.com/problems/permutations/discuss/18239/A-general-approach-to-backtracking-questions-in-Java-(Subsets-Permutations-Combination-Sum-Palindrome-Partioning)
 
+
 ## Key points:
+### Types
+* permutation: order of elements is considered, think of a list
+* combination: order of elements is not considered, think of a set
+* Note: Both permutation and combination can allow or not allow for duplicate elemenets
 ### basic logic
+
+[labuladong](https://labuladong.gitbook.io/algo/di-ling-zhang-bi-du-xi-lie/hui-su-suan-fa-xiang-jie-xiu-ding-ban)
+input
+* the original data source
+* information of current state: 
+    - an index of next element to visit
+    - a set of elements used
+    - an array/hashmap visited[]
+* options for next step
+    - an index of next element to visit
+    - use all the data in the orignial data source(duplication is allowed)
+* a result collection for storing the results, as the recursion happens
+
+Internal logics
+* handle base case, add result to result collection if needed. 
+* a for loop trying out all possible options for current step
+    - apply one option
+    - recurse to next level
+    - once recursion returns, undo this option and move on to next iteration of loop for next option
+
+
+In other words:(TODO consolidate these two)
 1. at each recursion, pass 
     * *results*: the collection that contains final results
     * *current temp*: a temp state of one of the final results
@@ -414,11 +447,19 @@ A leetcode discussion: https://leetcode.com/problems/permutations/discuss/18239/
         - original candidate array/list + an extra array `used` indicating what elements are used): versitale
     * *other relevant information*: extra info needed for processing, for example a target in combination sum. 
 2. Only add a final result into *results* collection when a base case is reached. All other layers of recursion are for building up the *temp result*
+### Failure points/Clarification points
+* duplication in input data, and if result allow duplication
+    - duplication in input is solved by sorting, and every time comparing with previous one
+    - if result does allow duplicate
+* how to dedup? 
+    - use a boolean array to track visited/used: `new boolean[nums.length]`(Permutation ii)
+    - sort and use a condition, this is good if we are scanning with an index. (subset ii)
+### The math
+[Permutations Combinations Factorials & Probability](https://www.youtube.com/watch?v=TBnPkKxXPu8&ab_channel=Mario%27sMathTutoring)
 
+### Special attention
 ### BFS solution
 A note mentioned "DFS is well-known to solve this, but you should understand the BFS solution, which is more generic to be applied to different follow-ups"
-### Special attention
-
 ## Problems
 https://leetcode.com/problems/subsets/
 Subsets II (contains duplicates) : https://leetcode.com/problems/subsets-ii/
@@ -427,6 +468,9 @@ Permutations II (contains duplicates) : https://leetcode.com/problems/permutatio
 Combination Sum : https://leetcode.com/problems/combination-sum/
 Combination Sum II (can't reuse same element) : https://leetcode.com/problems/combination-sum-ii/
 Palindrome Partitioning : https://leetcode.com/problems/palindrome-partitioning/
+
+
+
 # Monotone Stack
 There is another note for Mono-stack. preps/algos/Monotone Stack.md
 ## Problems

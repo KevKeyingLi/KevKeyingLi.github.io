@@ -88,4 +88,11 @@ Try to discuss as many bottlenecks as possible and different approaches to mitig
 
 ## Exercise problems
 * Designing a URL Shortening service like TinyURL
+
+
+
+
+
 # 2. Glossary of System Design Basics
+
+# My notes
