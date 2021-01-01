@@ -45,6 +45,40 @@ Slots are the **composition** model for components.
 * url need to be sanitized before rendering
 * Data should be sanitized before it is stored and retrieved from platform services. 
 
+# snabbDom
+# immer
+https://immerjs.github.io/immer/docs/introduction
+
+[Introducing Immer: Immutability the easy way](https://medium.com/hackernoon/introducing-immer-immutability-the-easy-way-9d73d8f71cb3)
+
+Immer is a package that 
+* helps with enforcing immutability
+* reduce boilerplate code
+* doesn't introduce new complex library specific way of writing code
+## Features
+
+Immer works by writting **Producers**
+```
+import produce from "immer"
+
+const nextState = produce(currentState, draft => {
+  // empty function
+})
+
+```
+
+* `produce` is the way you specify what's the next state
+* immer uses **structural sharing**, so
+    - any part that is not changed are still using the same reference
+    - any part that is modified is a new object
+* produced states are auto freezed, any further modification is not allowed.
+* currying on produce, so you can pass the 
+* reduces boilerplate code, and doesn't introduce new libary specific things to learn(like a immutable)
+
+## The inner working
+ 1) Copy-on-write. 2). Proxies
+
+# structural sharing
 
 # Side notes
 ## Redux 
