@@ -1,5 +1,5 @@
+# Parallel and Concurrent Programming with Java 1
 ## Intro
-
 ## 1 Parallel Computing Hardware
 ### Sequential vs. parallel computing
 Sequential
@@ -380,31 +380,459 @@ Daemon(Background) thread
     - example, don't use daemon threads for IO, because if daemon thread exits unfinished write/update may cause corrupted data.
 
 ## 3 Mutual Exclusion
+### Data race
+One of the main challenges of writing concurrent programs is identifying the possible dependencies between threads to make sure they don't interfere with each other and cause problems. 
+
+Data race
+1. when two or more threads are concurrently accessing the same location in memory
+2. and at least one of those threads is modifying it.
+
+
+
+How to recognize the data race.
+
+**Read-modify-write** is a common scenario
+* thread 1 *read*, *modify* gets paused, - - - - - - - - - - - - - *write*.
+* thread 2 - - - - - - - - - - - - - -, *read*, *modify*, *write*.
+
+
+> Olivia and I are two concurrent threads working together to figure out what we need to buy from the grocery store. I'll take inventory of the pantry and when I see that we're running low on something, I'll add more of that item to our shared shopping list. - While Barren does that, I'll look through my recipe book and I'll add ingredients to our shopping list for the meals that I wanted us to cook this week. - Even though we're two separate threads doing different tasks, we run the risk of a data race because we're both accessing and modifying the same shared recourse. (paper flutters) Our shopping list. Now, to the panty! - Oh! This garlic mashed potato recipe looks delicious, I'll need five potatoes for it. I see that our shopping list already has three potatoes on it. Three plus five is eight. So, I'll erase three (pencil scribbles) and write down eight. **As you can see, even a simple operation, like adding two numbers is actually a multiple step process.** First, I had to read the existing value of the item from the shopping list. Then, I modified the value by adding what I needed to it. Finally, I wrote the result back to the shopping list. - It looks like we're running low on garlic in the pantry. I think we should restock it with two more cloves. I see that there is currently one clove of garlic on the list. One plus two is uh... - My garlic mashed potato recipe calls for five cloves of garlic. I see there's currently one clove of garlic on the list, one plus five is six. So, I'll update the list to have six cloves on it. (pencil scribbles) - Three! One plus two is three. We need three cloves of garlic. (pencil scribbles) - Now, we have a problem. The shopping list started with one clove of garlic. Barren wanted to add two more and I needed to add five more. One plus two plus five means we should've ended up with eight cloves of garlic on this list. But somehow, we only have three. I need more garlic for my mashed potatoes. - We just had a data race. As concurrent threads, it's up to the operating system to schedule when we each get to execute. Right after I read the value of one from that shared shopping list, my thread got paused. - Then my thread became active and changed the number of garlic from one to six. - And finally, my thread became active again and at that point, I was operating with old data in my local memory because I thought the existing value of garlic on the shopping list was still one. So, I finished my operation by changing it to three. 
+
+In this example, it was the unfortunate timing of when our threads were scheduled that caused the problem. But, **the unpredictability of when threads get scheduled means sometimes the data race will occur and cause problems but other times, everything might work just fine**. That inconsistency makes data races a real challenge to recognize and debug.
+
+### Data race: Java demo
+03_02
+
+Even though the simple garlicCount++ operation is only a single line of code, in the background, the computer is actually performing **a three-step read, modify, write process**. My two concurrent threads end up stepping on each other and unintentionally overwriting each other's changes to produce an incorrect result. 
+
+* Detecting data races is hard, there are tools out there, and certain languages may have additional feature for detecting it
+* Preventing data races in the first place. Since a data race only occurs when at least one of the concurrent threads is modifying the value of a memory location, pay close attention to anywhere you use an assignment operation or an operator like the ++ which increments and changes the variable's value. If there is a potential that two or more threads could access that variable, then you will almost certainly need to use some form of synchronization.
+
+
+### Mutual exclusion
+Anytime multiple threads are concurrently reading and writing a shared resource, it creates the potential for incorrect behavior, like a data race. But we can defend against that by identifying and protecting critical sections of code. 
+
+#### critical section
+* A critical section or critical region is part of a program that accesses a shared resource, such as a data structure memory, or an external device, and it may not operate correctly, if multiple threads concurrently access it.
+* The critical section needs to be protected so that it only allows one thread or process to execute in it at a time.
+
+> Barron and I experienced a data race as we added garlic to our shared shopping list, because **incrementing a value is actually a three-step process. Read the current value, modify it, and then write back the result. Those three steps are critical section, and they need to execute as an uninterrupted action, so we don't accidentally override each other.**- I have an idea. Give me your pencil. - Hey, I was using that. - Now there's only one pencil for us to share, and the rule is that only the person holding the pencil can access the shopping list, either to read or write it. That way, one of us won't accidentally read a wrong value, because the other one is only halfway done updating it. In this arrangement, the pencil is serving as a mechanism called a **mutex, short for mutual exclusion**, which you'll also hear referred to as a **lock**.
+
+#### Mutex(lock)
+* Mechanism to implement mutual exclusion
+* Only one thread or process can have possession of the lock at a time
+* Thus limiting access to critical section, preventing multiple threads from simultaneously accessing a shared resource, forcing them to take turns. 
+
+
+> If either of us wants to access the shopping list, we first need to pick up the pencil, to acquire the lock on it. We do whatever we need to with the shared notepad, and then when we're done, release the lock by putting down the pencil. 
+
+#### Atomic operation
+* Execute as a single action, relative to other threads
+* cannot be interrupted by other concurrent threads
+
+The operation to acquire the lock is an **atomic operation**, which means it's always executed as a single, indivisible action. To the rest of the system, an atomic operation appears to happen instantaneously, even if under the hood, it really takes multiple steps. **The key here is that the atomic operation is an uninterruptible.**
+
+> So, if I grab the pencil. - Acquiring the mutex is an atomic action that no other thread can interfere with halfway through. Either you have the mutex, or you don't. And now that you do have a lock on our pencil, you can safely execute in the critical section. - I see we already have 10 carrots on the list. I'll add five more to that. - Oh, and we're going to need some more onions too. - Well, I currently possess a mutex, so you'll have to wait until I'm done. 
+
+#### Acquiring a lock
+Threads that try to acquire a lock that's currently possessed by another thread, can block/wait till it's available. 
+
+> There, I'm done with the notepad for now. So, I'll release the lock. - And I'll acquire the lock, so I can add onions to the list. - Don't forget to release the mutex when you're done. - Okay. 
+
+**Keep protected sections of code as short as possible.**
+
+>**Since threads can get blocked and stuck waiting for a thread in the critical section to finish executing, it's important to keep the section of code protected with the mutex as short as possible.** If I take the pencil, execute a critical section by adding more lettuce, and then hold on to the pencil while I contemplate what else to buy. - I'm stuck waiting for Olivia to return the pencil so I can use it, and getting kind of annoyed. - Only thinking about what I want to buy doesn't actually require the shared notepad. So the operation doesn't require mutual exclusion. I should have returned the pencil as soon as I was done updating the list. That way Barron could use it to execute the critical section, while I'm busy doing other things.
+
+
+### Mutual exclusion: Java Demo
+03_04
+* add `import java.util.concurrent.locks.*;`
+* `static Lock pencil = new ReentrantLock();`: more on ReentrantLock in next [4. Locks]()
+* add `pencil.lock()` and `pencil.unlock()` to the thread's `run()` method, before and after the critical section
+
+### Atomic variable: Java demo
+03_05
+
+**Java Atomic package**
+Their values update as a single, uninterrupted operation which makes them "thread-safe."
+* simpler than using a lock to protect shared var
+* classes that support lock-free, thread safe programming on single variables
+* a lot of available types, each has a variety of methods that implement Atomic versions of most standard operations. 
+    - AtomicBoolean
+    - AtomicInteger
+    - AtomicIntegerArray
+    ...
+
+* `import java.util.concurrent.atomic.*`
+* `static AtomicInteger garlicCount = new AtomicInteger(0);`
+* `garlicCount.incrementAndGet()`
+
+### Synchronized method: Java demo
+
+Intrinsic Locks
+
+> Transcript: Something unique in Java is that every object has an intrinsic lock associated with it, a thread that needs exclusive access to an object's fields has to acquire that object's lock before accessing them and then release that intrinsic lock when it's done.
+
+The Java programming language provides two basic synchronization constructs to use those intrinsic locks
+* synchronized methods
+    - add the keyword synchronized to the method's declaration
+    - Multiple invocation will not interleave. Avoid multiple threads invoking the same method and interleaving the execution. 
+    - When a thread tries to invoke a synchronized method while another thread is executing a synchronized method for that same object, the second thread will suspend execution until the first thread is done and exits. 
+* synchronized statements(next chapter)
+
+
+
+03_06
+
+> To demonstrate that in Java, I'll modify the previous example program to show a data race in which two concurrent threads increment a shared counter variable 10 million times each. Within the shopper class, I'll create a new static method called addGarlic and I'll include the synchronized keyword in its declaration. Next, I'll put the operation to increment the garlicCount variable inside of that synchronized method. And finally, I'll replace the call to garlicCount++ in the for loop on line 15 with a call to the synchronized addGarlic method. I'll run the program. And good news! I get the correct output of 20 million. Only one of the two concurrent threads can execute within the synchronized addGarlic method at a time so the program avoids a data race. 
+
+Now an important thing to note in this example is that I marked the addGarlic method as static so that it's associated with the shopper class and not a specific instance of a shopper. By doing so, when either thread invokes the synchronized addGarlic method, it will acquire the intrinsic lock that's associated with the **class object**. If I remove the static keyword on line nine, then each of the two shopper threads will invoke their own instance of the addGarlic method which is associated with their own object's intrinsic lock. If I run the program now, it does not work correctly. The threads are no longer using the same intrinsic lock so I end up with a data race.
+
+### Synchronized statement: Java demo
+
+When creating an synchronized statement, you specify the object that will provide the intrinsic lock. 
+```
+synchronized (object) {
+    //protected code
+}
+```
+
+
+Before a thread can execute the code contained within the synchronized statement, it must first acquire the intrinsic lock associated with the specified object and then when the thread is done, it will release its hold on that lock. 
+
+03_07
+
+
+#### The right way
+> I want to synchronize access to line 11 which increments the shared garlicCount variable. So I'll wrap that line in a synchronized statement and I'll give it the shopper.class object to use for the intrinsic lock. When I run this program both threads will be acquiring and releasing the same intrinsic locks associated with the shopper class before and after they increment the garlicCount. So I get the expected output value of 20 million. 
+
+#### The wrong way
+> Now let's see what happens if instead of using the shopper class object, I use each instance of the shopper as the object for the synchronized statement. To do that, we'll replace shopper.class with the this keyword. Now when I run the program, I get an incorrect result because each of the two shopper threads is acquiring and releasing the intrinsic lock associated with their own instances. They're not synchronized to the same object now so the data race occurs. 
+
+#### A trap
+Using `Integer` as sychronized object, doesn't work because
+* `Integer` is immutable
+* Every operation on `Integer` actually creates a new Integer object. Thus synchronize is using different objects each time, and won't work. 
+
+
+> Something else that might seem like a good idea to do here would be to synchronize this statement on the garlicCount variable itself. But if I try to do that I get an error because I need to use an object for synchronization and garlicCount is currently just a primitive int variable defined on line seven, but that's an easy change to make. I'll just change int into an integer object. Now when I run this program the output is less than 20 million. The data race still exists. The problem now is that Java's integer object is immutable. Once you create a integer instance, you cannot change its value, but I'm doing just that on line 12 when I increment the garlicCount so what's really happening here is that every time a thread executes the garlicCount plus plus operation, Java instantiates a new integer object which will have a different object ID. So each time the thread loops back around and executes that synchronized statement, they'll actually be using a different object for the intrinsic lock. So they're not really synchronized at all. This is a sneaky little trap you can fall into so be careful when selecting the object to use for synchronized statements. 
+
+### Summary
+* Locks
+* Atomic variable
+* Sync methods
+* Sync statement
+
+The tradeoff
+* Synchronized is Easier to implement and prevents many pitfalls of locks
+* Locks provides more flexibility to implement certain algos
+
+> Over the past few videos, we've looked at several different mechanisms to implement mutual exclusion in Java: locks, atomic variables, and synchronized methods or statements. So, which is best? In general, if you're using Java, synchronized statements and methods are easier to program with than locks. And they can prevent many common pit falls that can occur when using locks. So, if synchronized methods or statements will work for your needs, they're a good default option. That said, there may be times when you need to work with locks in more complex ways, perhaps acquiring and releasing a series of locks in a nested or hand over hand manner, and that's not possible with a synchronized statement, but locks do allow more flexibility to be acquired and released in different scopes and to be acquired and released in any order. But with that increased flexibility, comes additional responsibility and we'll look at why later in this course.
 ## 4 Locks
 
+### Reentrant lock
+
+ReentrantLock is a class that implements the Lock interface.
+
+Deadlock
+* All processes and threads are unable to continue executing
+> Olivia and I have been using this pencil as a mutex. Only one person at a time can own or have a lock on it, and only that person can access our shared resource, this notepad. - If I attempt to lock the mutex while another thread has it, my thread will be blocked, and I need to wait until he unlocks it so it becomes available. - And if I attempt to lock the mutex, it doesn't appear to be available, so my thread will just have to wait too. - It's behind your ear. You already locked it. - Oh. Well my thread can't unlock the mutex while I'm blocked waiting on it, and I'll be waiting on the mutex forever because I'll never be able to unlock it. I'm stuck, and so are you. 
+
+**If a thread tries to lock a mutex that it's already locked, it'll enter into a waiting list for that mutex, which results in something called a deadlock, because no other thread can unlock that mutex.** - **There may be times when a program needs to lock a mutex multiple times before unlocking it. In that case, you should use a reentrant mutex to prevent this type of problem.** **A reentrant mutex is a particular type of mutex that can be locked multiple times by the same process or thread. Internally, the reentrant mutex keeps track of how many times it's been locked by the owning thread, and it has to be unlocked an equal number of times before another thread can lock it.** 
+
+> If this pencil is a reentrant mutex, when I pick it up, I lock it. - Now Olivia's thread has a hold on the mutex, so she's the only one that can lock or unlock it. - Since the pencil is reentrant I can lock it again. Now the pencil has been locked twice by me, which means I'll have to unlock it twice to fully release my hold on it. If your program needs to lock a mutex multiple times, using a reentrant mutex may seem like an easy way to avoid a deadlock. But if you don't unlock the reentrant mutex the same number of times, you can still end up stuck. - I'm waiting. Thanks. 
+
+Many programmers like using reentrant locks because it can make things easier. You don't need to worry as much about what's already been locked, and they make it easier to retrofit locks into existing code. 
+
+> As an example, say I have a function to increment a shared counter, and it uses a mutex to protect that operation. If later I create another function that uses the same mutex to protect some other section of code, and that section of code uses the increment counter function, since those functions are nested, when I execute my function it will end up locking the mutex twice before unlocking it. If I was using a regular non-reentrant lock, that would produce a deadlock, but with a reentrant mutex this works just fine. 
+
+![Reentrant lock 1](./images/Reentrant lock 1.png)
+
+> Like many things in the world of programmers, there are some very strong opinions about whether reentrant locks are good or evil. Some opponents of using reentrant locks will argue that the example I just showed you should be refactored to avoid having nested locks by using a third function that increments the counter and only gets called from within a protected section. 
+![Reentrant lock 2](./images/Reentrant lock 2.png) 
+> I'm not going to advocate either way on this debate. There are pros and cons to both sides. - 
+
+One common use case of reentrant locks is in recursive function. If the function makes a recursive call to itself from within a locked section, it will lock the mutex multiple times as it repeats itself, and then unlock the mutex an equal number of times as it returns and unwinds.
+
+Aliases: reentrant mutex = reentrant lock = recursive mutex = recursive lock
+
+### Reentrant lock: Java demo
+In Java, there are three classes that implement the lock interface
+* ReentrantLock
+* ReentrantReadWriteLock.ReadLock
+* ReentrantReadWriteLock.WriteLock
+
+
+Java does not have a standard non-reentrant lock.
+
+04_02
+#### Demo lock and unlock on time
+> This is a variation of the previous example I used to demonstrate a data race and implementing mutual exclusion, with two shopper threads that concurrently increment the amount of items to buy on a shared shopping list. In this version, the shopper class has a private method on line 12 called addGarlic which uses the reentrant lock named Pencil to enforce mutual exclusion around a call to increment the class variable named Garlic on line 14. A related method on line 18 named addPotato performs a similar function to increment another class variable named potatoCount. Scrolling down, the shopper's run method simply uses a for loop on line 25 to execute those addGarlic and addPotato methods 10,000 times each. Down in the program's main method, I create and start two shopper threads and then after they finish running, I print out the amount of garlic and potatoes to buy. Running this program as is, indicates we need to buy 20,000 garlic and 20,000 potatoes, that's quite a feast.
+
+#### Demo lock/unlock more than once
+Now let's say every time I add a potato, I also want to add an additional garlic to my list because garlic and potatoes go really, really well together. To do that, I might add a call to the addGarlic method inside of the addPotato method immediately after I increment the potatoCount. By doing that, I've effectively nested multiple calls to lock the pencil. When the addPotato method gets called, it will lock the pencil on line 19. Then, when the addPotato method calls addGarlic two lines later, the addGarlic method will lock the pencil again on line 13. So, the pencil ends up being locked twice in a row by those nested methods, before then being unlocked twice as the nested methods complete. Fortunately, since I'm using a reentrant lock, this code runs just fine and it gives me the output that we should now buy 40,000 garlic and 20,000 potatoes. 
+
+
+Java actually has a method that allows us to view the number of times that a reentrant lock has been acquired: `ReentrantLock.getHoldCount();`
+
+> To use that, I'll need to change the type of the pencil object on line 10 from the general lock interface to the more specific reentrant lock. Now, I'll add a print statement to the addGarlic method right after locking the pencil to display the value of pencil.getHoldCount When I run this program, I see that the Hold count messages alternate between one and two. The Hold Count will be one for the times when the addGarlic method gets called directly and it will be two when the addGarlic method gets called from within the potato method and therefore the pencil gets locked twice.
+
+### Try lock
+* non-blocking lock/acquire method for mutex
+* if mutex available, lock it and return true
+* if not, return false
+
+
+> **When multiple threads each have multiple tasks to perform, making those threads block and wait every time they attempt to acquire a lock that's already taken may not be necessary or efficient.**
+Olivia and I are two threads doing several different tasks. My thread will be taking an inventory of the fridge to see what things we're running low on and then add those to the shopping list on our shared notepad. I'll go back and forth between those two tasks. - [Olivia] And my thread is searching through the newspaper for grocery coupons and then adding those items to the shared shopping list. Ooh, there are some good deals this week! Now that I've found some items that I want, I'll take the pencil, which is our mutex, to lock access to the shared notepad so I can add them. - I saw we're low on milk. So now I'll go to acquire the pencil. And I see Olivia has it. If I attempt to lock a mutex in a regular blocking fashion, my thread would enter a waiting state at this point, doing nothing until Olivia unlocks it. If I don't have anything else to do, so I can't continue with other things until after I've accessed the shared notepad, that's okay. It's what has to happen, but in this scenario, I do have other useful things to do that don't require the notepad. I can keep searching the fridge for other things we need. **So, rather than using the standard locking method to acquire the mutex, I'll use what's called try lock, or try enter, which is a non-blocking version of the lock or acquire method.** It returns immediately and one of two things will happen. If the mutex you're trying to lock is available, it will get locked, and the method with return TRUE. Otherwise, if the mutex is already possessed by another thread, the try lock method will immediately return FALSE. That return value of true or false lets the thread know whether or not it was successful in acquiring the lock. So, if I try to lock the pencil that Olivia currently has, I know immediately that my attempt has failed. So I can go back to searching the fridge. - There, I'm done writing for now. So I'll unlock the pencil and go back to searching for coupons. Since Barron wasn't blocked waiting for this mutex, it's just sitting unlocked available for anyone to take. Now, Barron likes to explain try lock with pencils and notepads. I think of it more like being at a house party with a bunch of your friends, your fellow threads. There's one restroom at the house that everyone at the party will need to use at some point. But only person can use it at a time. When you try to use it, and try opening the door, you realize it's locked because someone's already inside. You could stand there and wait until they come out or you could go back to the party, keep having fun, and try again later.
+
+### Try lock: Java demo
+This example demonstrates, with try lock, threads can become more efficient.
+
+ 04_04
+
+To demonstrate the try lock method in Java, I've created this example that simulates two shoppers searching for the items they need and then adding to a shared notepad. In this shopper class, each shopper has their own instance variable on line nine for the number of items they need to add to the notepad, which is how many items they found in a coupon book or perhaps missing from the fridge. The static integer on line 10 represents the number of items they've added to the shared notepad, and the pencil on line 11 is the lock that's used to protect access to it. Down in the run method, the while loop on line 18 will keep the shoppers searching for items and adding them to the shared notepad until there are at least 20 items. If the shopper has items to add to the notepad, they'll execute the if clause on line 19, in which they lock the pencil, add all of their items to the list, and then print a message with how many items they added. That then resets their items to add count back to zero. Their thread sleeps for 300 milliseconds, and then finally, it unlocks the pencil on line 29. If the shopper did not have anything to add, then they would have executed the else clause on line 31. Where they spend 100 milliseconds searching for an item that they need, which then increments their items to add count. Down in the main method, I create two shoppers named Barron and Olivia, then record the time from when I start their threads until they both finish to see how long it takes them both to find at least 20 items. Now I'll run the program. And I see that it took them a little over six and a half seconds. Notice that their two threads are never adding more than one item at a time. Since the regular lock method blocks execution, these two threads end up taking turns, Swapping places between the top and bottom sections of that if else statement. Now, I'll replace the standard lock method up on line 21 with Java's try lock method. And, since the try lock method returns a Boolean value to indicate whether or not it successfully acquired the lock, I'm going to move and incorporate it into the if statement on line 19. Now, the order of these statements on each side of the and operator matters. Because Java evaluates statements from left to right. It will first check to see if there are any items to add, and only if the left side of the and operator is true will it evaluate the right side and execute that try lock method. If the lock is available, then calling try lock will acquire it and return true. So the program will execute the code between lines 20 to 29 to add items to the shared notepad. If the lock was not available, then since try lock doesn't block execution, it will immediately return false. And that thread will execute the else clause from lines 31 to 37 to look for other things to buy. When I run the program now, it executes much faster, finishing in under two and a half seconds, which is less that half the amount of time as before. Notice that now, when one of the threads gets its turn in the critical section, it's often adding more than one item to the notepad. **With the try lock method in place, as one thread takes its time writing to the notepad, the other thread is able to jump past that section of code to search for other things to buy multiple times. That thread has been freed up to accomplish other useful things.**
+
+
+
+### Read-write lock
+
+The generic locker mutex locks the resource no matter the operation, while if it's only read operation, we don't necessarily need to lock the data. Write operation is where locking is needed. 
+
+A reader-writer lock or **shared mutex** can be locked in one of two ways
+* **shared read mode** that allows multiple threads read simultaneously
+* **exclusive write** mode that limits access to only one thread to safely write.
+
+#### An example
+> A read-write lock is useful for protecting a shared resource like our calendar, because Baron and I frequently need to read the calendar throughout the day. - I can never remember what day it is. - But we rarely need to modify it. - Once once a day. - This marker represents our shared mutex. When my thread wants to read the calendar, I'll lock the mutex in the read only mode by placing my finger on it. - I also want to read the calendar, I can also place my finger on the marker. Now we both have a shared lock on it, so we can both concurrently read it. - When I'm done checking the date, I'll release my lock on the mutex. Now, I think it's time to increment the calendar's date. In other words, I want to modify it, and to do that, I'll need to lock the shared mutex in exclusive write mode by picking it up. - But I'm still holding onto the lock to read. - A thread trying to acquire the lock in write mode can't do so as long as it's still being held by any other threads in the read mode, so I'll have to wait. - Done. - Now the shared mutex is completely free, so I'll pick it up to place a write lock on it and update the calendar. - Ah. I already forgot what day it is. And I can't read the calendar now because Olivia has an exclusive hold on the lock to write. Since only one thread can have the write lock at a time, all other threads wanting to read or write will have to until the lock becomes available again. 
+
+#### When to use a read-write lock
+
+* In certain scenarios, read-write locks can improve a program's performance versus using a standard mutex. 
+* more complicated to implement 
+* typically use more resources under the hood to keep track of the number of readers
+* there can be language dependent differences in how they're implemented that affect performance
+    - e.g. Do they give preference to readers, or writers that are trying to acquire the lock? 
+
+A general rule of thumb:
+* Use a shared reader-writer lock when # of read threads > # of write threads. such as certain types of database applications.
+* If the majority threads are writing, then there's not much advantage to using a read-write lock.
+
+### Read-write lock: Java demo
+
+04_06
+
+```
+    private static ReentrantLock marker = new ReentrantLock();
+    ...
+    marker.lock();
+    marker.unlock();
+```
+
+```
+    private static ReentrantReadWriteLock marker = new ReentrantReadWriteLock();
+    private static Lock readMarker = marker.readLock();
+    private static Lock writeMarker = marker.writeLock();
+    ...
+    writeMarker.lock();
+    writeMarker.unlock();
+    readMarker.lock();
+    readMarker.unlock();
+```
+
+## 5. Liveness
+### Deadlock
+
+Dining philosophers problem:
+* each philosopher need to pick up both chopsticks to eat
+* picking up the two chopsticks happens in two steps
+* possible scenario is two philosophers each pick up one chopstick, and waits on the other chopstick
+* deadlock
+* *Set priorities to chopsticks can solve it*
+
+Deadlock: Each member is waiting for some other member to take action, and as a result, neither member is able to make progress. 
+
+
+Avoiding deadlock is common challenge in concurrent programs that use mutual exclusion mechanisms to protect critical sections of code. 
+
+Deadlock to liveness, which is 
+* a set of properties that require concurrent programs to make progress
+* Some processes or threads may have to take turns in a critical section
+A
+ well-written program with liveness guarantees that all processes will eventually make progress.
+
+
+A realistic scenario:
+
+> imagine something like a banking application with a set of bank accounts where each one has its own mutex to ensure that only one thread will be withdrawing from or depositing funds to that account at time. To transfer funds between two accounts, a thread needs to acquire the locks for both the sender and the receiver since it would be modifying the value of both accounts. If there are multiple threads concurrently making transfer between the accounts, then there's a real chance that they could end up competing for the same locks and run into this sort of deadlock scenario.
+
+### Deadlock: Java demo
+
+And this highlights the tricky nature of Deadlocks and why they can be hard to detect and debug. Just like Data Races, you might get lucky and never have your program lock up, even if the potential for a Deadlock exists. 
+
+
+Potential fixes for deadlock:
+* Lock ordering:
+    - may not always be feasible. For example, a thread may not know all of the locks it will need to acquire ahead of taking any of them. 
+* locking timeout: Put a timeout on lock attempts, if a thread is not able to successfully acquire all of the locks it needs within a certain amount of time it will:
+    - back up, free all of the locks taken
+    - wait for a random amount of time 
+    - try again
+
+### Abandoned lock
+> Now that we figured out how to avoid a deadlock between our two philosophers using chopsticks, we can return to our routine of eating and philosophizing. I'm ready for another piece of sushi so I'll pick up the first chopstick, then the second one. And I think I left the refrigerator open. - Oh, that was rude of him. 
+
+We've entered **another form of a deadlock through thread death**. **If one thread or process acquires a lock, and then terminates because of some unexpected reason, it may not automatically release the lock before it disappears.** 
+
+> That leaves other tasks like me stuck waiting for a lock that will never be released and getting hungry. - Sorry about that. Let's look at some code.
+
+### Abandoned lock: Java demo
+To demonstrate what happens if you abandon a lock in Java, I'll be modifying a version of the previous dining philosophers example that I used to demonstrate a deadlock. It has three philosophers using chopsticks to take sushi from a shared plate. I've already fixed the deadlock in this version, so if I run this program, the philosophers successfully take turns eating sushi until all of the pieces are gone. 
+
+The critical section for this program exists between the lock calls on line 23 and 23, and the calls to the unlock method on lines 32 and 33. Now, if one of the philosopher threads acquires those locks and then something goes wrong in the critical section and throws an unexpected error, that could cause its thread to terminate before it gets a chance to release those locks. To simulate that happening, I'm going to add another if statement that checks to see if there are exactly 10 pieces of sushi left. And if so, I'll use my favorite technique for intentionally crashing a thread, dividing by zero. Now, you should never intentionally divide by zero, but I'm doing it here to throw an exception that will cause Java to crash one of these threads. When I run this program, it gets all the way down to 10 pieces remaining. Then, the thread that happens to be executing at that time hits the divide by zero case, and crashes. In this run, Olivia was the unlucky thread. The other two threads are stuck waiting on the locks that Olivia will never release, so the program is stuck here forever. 
+
+This scenario is slightly different than the deadlock we looked at previously because the threads are not waiting on each other to release the lock. But it's a related scenario and the impact is the same. This program isn't making any progress. 
+
+So, to prevent this type of situation from occurring in Java, I should **wrap the critical section in a try block**. If I want, I can include any exception handling code in a catch statement after that. But what I really care about here is making sure that the locks always get released. And to do that, I'll add a finally block after the try statement, and I'll move the calls to unlock the chopsticks into it. Now when I run the program, an exception still occurs when Barron takes the 10th remaining piece of sushi, but thanks to the finally clause, Barron's thread is able to release the lock before terminating. I can see that after the 10th item, Olivia's thread took over to finish eating the rest of the sushi. 
+
+**This is a good practice to follow when using locks in Java. Always put the critical section in a try block and release the locks in a finally clause just in case something goes wrong.**
+
+### Starvation
+
+**Starvation: a process or thread is unable to gain access to a necessary resource (i.e. perpetually denied the resources it needs), and is therefore unable to make progress.** If another greedy thread is frequently holding a lock on the shared resource, then the starved thread won't get a chance to execute.
+
+Two main causes of starvation
+* Lower priority threads doesn't get to be scheduled
+* Too many concurrent threads
+
+
+It would be nice if Olivia and I took turns acquiring and releasing the pair of chopsticks so we could each take an equal amount of sushi from the shared plate. But that's not guaranteed to happen. The operating system decides when each of our threads gets scheduled to execute, and depending on the timing of that, it can lead to problems. If Olivia puts down the chopsticks to release her lock on the critical section, but my thread doesn't get a chance to acquire them before she takes them again, then I'll be stuck waiting again, until she takes another piece. If that happens occasionally, it's probably not a big deal. But if it happens regularly. - Too slow. - Then my thread's going to starve. 
+
+In a simple scenario like ours, with two equal threads competing for execution time, starvation probably isn't a concern. Both of our threads should get plenty of chances to take sushi. **However, if our two threads are given different priorities, then that may not be the case.** Baron knows I can get grumpy when I don't eat. - And I certainly don't want that, so I'll give Olivia's thread a higher priority. - Thanks. - How different thread priorities get treated will depend on the operating system. But, generally, higher priority threads will be scheduled to execute more often and that can leave low priority threads like me feeling hungry. 
+
+Another thing that can lead to starvation is having **too many concurrent threads**. - Oh, I forgot to mention that I invited some friends over. (scoffs) - Well, with this many competing threads, I may never get any sushi.
+
+### Starvation: Java demo
+To demonstrate thread starvation in Java, I'll modify the dining philosophers example program by adding a local variable within the philosophers classes run method to keep track of the number of pieces of sushi, this philosopher thread gets to eat. I'll increment that sushi eaten variable every time the philosopher takes a piece of sushi. And finally at the end of the run method after the while loop finishes, I'll print out the number of pieces that this philosopher was able to take. When I run this program... I see that each philosopher got a different amount of sushi and it's not particularly fair. Olivia took way more sushi than Barron or Steve here, but that's not because she is greedy, it's because of the order in which three philosophers are currently taking chopsticks. Barron and Steve and both competing for chopstick A as their first chopstick, but Olivia is the only philosopher going for chopstick B first. So since she has less competition to get her first chopstick, she ends up being able to take sushi more frequently. So to make things fair here, I'll make all of the philosophers acquire the same two chopsticks A and then B. And then I'll run the program again. And now they end up with a much more even and fair distribution. With half a million of sushi, there is plenty to go around so all of these philosophers are well fed. 
+
+
+Now let's see what happens if I drastically increase the number of philosophers at this dinner party by using a for loop to create 5,000 instances of Barrons, Olivias and Steves, which means 15,000 total philosophers will be competing for just half a million pieces of sushi. Now, after running this program... As I scroll through the final counts for each thread, I can see that some of the philosophers got a lot of sushi compared to others and many philosophers starved completely. 
+
+All of these threads were created with the same default priority but because there were **so many of them**, some of the threads never got a chance to execute, and this represents a real problem in programs containing huge numbers of threads. For example, if instead of feeding sushi to a bunch of philosophers, this program was web server that created new threads to handle a huge number of incoming requests, some of those requests may never get processed, and that would lead to some impatient and angry users on the other end. **There are techniques that can be used to improve or even guarantee fairness among threads, but that type of word cloud management is very situation dependent and beyond the scope of this course.**
+
+### Livelock
+
+
+
+**livelock: multiple threads or processes are actively responding to each other to resolve conflict, but that prevents them from making progress**, could be solved by priority, random selection, etc. 
+
+
+> Our greed and competition for sushi has led us to a life of deadlocks and starvation. There's only one piece of sushi left and I can see you're still hungry, you should have it. - Thank you my dear, but I can see you're still hungry too. And I would feel like a lousy husband if I allowed my wife to go hungry. You should have the last bite. - Oh but I can't bear to see you hungry, you shall have the final bite. - Well this is annoying. We've entered into another tricky situation known as a **livelock**. 
+
+
+A livelock looks similar to a deadlock in the sense that two threads are blocking each other from making progress, but the difference is that the threads in a livelock are actively trying to resolve the problem. 
+
+A livelock can occur when two or more threads are designed to respond to the actions of each other. Both threads are busy doing something, but the combination of their efforts prevent them from actually making progress and accomplishing anything useful. The program will never reach the end. 
+
+**The ironic thing about livelocks is that they're often caused by algorithms that are intended to detect and recover from deadlock.** If one or more processor thread takes action to resolve the deadlock, then those threads can end up being overly polite and stuck in a livelock. To avoid that, ensure that only one process takes action chosen by priority or some other mechanism, like random selection. - Rock, paper, scissors for it? - One, two, three, shoot. - I win! - Now Olivia gets the last piece of sushi and that resolves our livelock.
+
+### Livelock: Java demo
+To demonstrate a livelock in Java, I'll modify the dining philosophers example from earlier that I used to demonstrate a deadlock. Now, I have not implemented a strategy to prevent the deadlock in this version, so if I run this program, sure enough, after a few iterations, it hits a deadlock. The philosophers have acquired their first chopstick lock, and they're stuck waiting for their second one to become available. One possible way to fix this problem would be to have the philosophers release their lock on their first chopstick if their second chopstick is not available when they try to take it. That will give another philosopher a chance to take that first chopstick and hopefully prevent the deadlock. To implement that, instead of using the regular lock method, on the second chopstick, I'll use the TryLock method on it. And, I'll put that in an if statement that will execute if the lock was not taken. If that happens, I'll print a message that this philosopher released their first chopstick and then release it. (keyboard typing) Otherwise, in the corresponding else clause, I'll continue on as normal with the run method. That should prevent a deadlock, so I'll run the program, and I just see a lot of messages that the philosophers are releasing their first chopstick. Occasionally, the scheduling works out so that one of these philosophers is able to acquire both of the locks they need to take a bite of sushi, so this is not a complete livelock scenario, but the majority of the time, these philosophers are picking up their first chopstick and then politely putting it back because another philosopher probably needs it. If I press ctrl+shift+esc to bring up the Windows Task Manager and look at the Performance tab, I see that the **CPU is being pretty steadily utilized. All of those threads are actively working to pick up and put down their chopsticks. They're just not making any progress towards the end of the program.** 
+
+**Livelocks can be even harder to locate and debug than deadlocks, but when you're multithreaded program seems to be stuck in some sort of lock, looking at the CPU utilization may give you some insight into whether it's a livelock or a deadlock.** This program's going to keep running for a long time, so I'll stop it by clicking the stop button in IntelliJ
+
+To resolve this livelock, I'm going to introduce some randomness by importing the Java.util.Random class. (keyboard typing) Then I'll give the philosopher class its own random object, which I'm going to call RPS, which stands for Rock, Paper, Scissors. And finally, after a philosopher decides to put back their first chopstick, I'll make them sleep or philosophize for a random amount of time before they try taking their first chopstick again. (keyboard typing) And since that sleep statement can throw an exception, I'll need to wrap it in a try catch clause. IntelliJ makes that easy with a little red lightbulb. Now when I run the program one final time, I see way fewer instances of the philosophers returning their chopsticks, so they're able to keep taking pieces of sushi. The program makes progress, and it's able to finish without running into a deadlock.
+
+**Thread.sleep() may throw exception, so try catch is necessary**
+
+# Parallel and Concurrent Programming with Java 2
+## Intro
+## 1.Synchronization
+### Condition variable
+> Baron and I just made a slow cooker full of delicious hot soup and I'm ready to dig in. - But we should **take turns** to make sure we each get our fair share of soup. In this scenario, we're two hungry threads competing for access to a shared resource, the soup, and the *slow cooker lid will act as a mutex* to protect it. Only the thread that holds the lid can check to see how much soup is left, determine if it's their turn to take the next serving and modify the amount of soup that's left by taking some. - Hmm, that was some really good soup. I think I'll have another serving. Oh, I see you haven't taken your share yet. What about now? How about now? Now? - Olivia's thread is wasting a lot of energy repeatedly *acquiring the mutex to check for a certain condition, to see if her turn to take more soup*, and she'll continue doing that until my thread eventually gets scheduled, so I can acquire the lid, see that it's my turn and take my serving. - **What I was doing is called busy waiting or spinning**, 
+
+Busy waiting, aka. spinning: repeatedly acquiring and releasing the lock to check for a certain condition to continue. It isn't very efficient, especially if it goes on for a long time.
+
+
+This is one of the limitations of using just a mutex. 
+* Sure, it restricts multiple threads from taking soup at the same time
+* **but** the mutex alone doesn't give our threads **a way to signal each other to synchronize our actions**. To do that, we can use another mechanism called a **condition variable**
+
+Condition variable: a queue or container for threads that are waiting for a certain condition to occur. Think of it as a place for threads to wait and be notified. 
+
+The condition variable is associated with a mutex. The condition variable + a mutexthey = a higher level construct called a **monitor**. 
+
+Monitors
+* protect a critical section of code with mutual exclusion
+* provide the ability for threads to wait/block until a certain condition occurs, and signal those waiting threads
+
+#### Conceptually
+* A monitor: a room that contains the procedures and shared data that you want to protect. Only one thread can be in that room at a time to use those procedures and access the data.
+* Mutex: a lock on the door.
+* *condition variable*: *waiting room*. 
+    - Other threads that try to enter the protective section while it's occupied will wait outside in a *condition variable*/*waiting room*.
+    - There might be *multiple condition variables* or multiple waiting rooms, waiting for different conditions to occur to acquire that same mutex.
+
+![Monitor0.png]()
+![Monitor1.png]()
+![Monitor2.png]()
+![Monitor3.png]()
+* When the thread inside the monitor finishes its business in the critical section
+    - it will signal one of the conditions that it's their turn to execute
+    - then it releases its lock on the door to exit the critical section.
+* One of the threads waiting for that condition that was signaled will 
+    - wake up
+    - take its turn in the monitor
+    - locking the door behind it, execute the critical section
+
+
+
+Now, the condition variable has three main operations. 
+* Wait:
+    - Before using a condition variable, the thread acquires the mutax, check the condition, and the condition doesn't meet
+    - automatically release lock on the mutex
+    - go to sleep and enter waiting queue
+    - reacquire lock when woken up
+* signal
+    - wake up one thread from condition variable queue
+    - called `signal`, `notify`, `wake` depending on language
+    - release lock on mutex
+* broadcast
+    - wake up all threads from condition variable queue
+    - may be called `notifyAll` or `wakeAll`
+
+> Before using a condition variable, I first need to acquire the mutex associated with it, check for my condition, I see that it's not my turn to take more soup, so I'll use the condition variable's wait operation, which releases my lock on the mutex and then puts my thread to sleep or a pause state and places it into a queue waiting for another thread to signal that somebody else takes the soup.
+
+> Since Baron released his lock on the lid before going to sleep, now I can acquire it, see that it's my turn to take some soup, so I'll do that. Then, I'll use the signal operation to wake up a single thread from the waiting queue, so it can acquire the lock. Depending on the language you're using, you will also see this operation called notify or wake. Baron, wake up, it's your turn to take some soup. Finally, I'll release my lock on the mutex. - Ah, my turn. The third condition variable operation, broadcast, is similar to the signal operation except that it wakes up all of the threads in the waiting queue. You may also see it called things like notify all or wake call. 
+
+> Now, in this little scenario, we only had two threads signaling each other on a single condition, that somebody took soup which then changes whose turn it is to take the next serving. 
+
+#### implementing a **shared queue or buffer**
+* mutex
+* condition variables
+    - bufferNotFull
+    - bufferNotEmpty
+
+A more common use case that requires multiple condition variables is implementing a **shared queue or buffer**. If multiple threads will be putting items in a queue and taking them out, then it needs a mutex to ensure that only one thread can add or remove items from it at a time, and for that, we can use two condition variables. If a thread tries to add an item to the queue, which is already full, then it can wait on a condition variable to indicate when the buffer is not full. And if a thread tries to take an item but the queue's empty, then it can wait on another condition variable for `BufferNotEmpty`. These condition variables enable threads to signal each other when the state of the queue changes.
+### Condition variable: Java demo
+Selecting transcript lines in this section will navigate to timestamp in the video
+- [Instructor] This Java program, to demonstrate using condition variables, defines a class named HungryPerson on line seven, which has three variables, an instance variable named personID on line nine, which is a unique ID number that gets passed to the HungryPerson constructor method, a static class variable named slowCookerLid, which is the reentrant lock that protects access to the third variable on line 11, representing the number of servings in the slow cooker, which gets initialized to 11. When a HungryPerson thread starts, the run method uses a while loop on line 18 to keep taking servings of soup until there's none left. For each iteration of the loop, the HungryPerson takes the slowCookerLid by locking it on line 19, then they check to see if it's their turn to take the next serving by comparing their ID number to the number of servings left, modulo two since there are two people in this example. If it is their turn, and there's soup left in the pot, then they take a serving of soup by decrementing the shared servings value on line 22 and print a message that includes how much soup is left. If it was not their turn, then they print a message about putting the lid back, and then finally, on line 30, the thread unlocks the slowCookerLid for another HungryPerson to take. Down in the main method, I simply use a for loop on line 38 to create and start two HungryPeople to eat soup. If I run this program I see that these two threads spend a lot of cycles checking to see if it was their turn and then putting the pot lid back. If I scroll up through the output I see that over the course of all that, the two threads do take turns eating, and it's just not very efficient. So let's use a condition variable for them to communicate. I'll add a static condition object to the HungryPerson class to signal after one of the threads has taken soup. And I'll associate that condition variable with the slowCookerLid by creating it with a newCondition method on that object. The basic usage pattern for a condition variable involves locking the mutex, then using a while loop to check if the condition we're looking for is true. If it's not true, then we'll wait on the condition variable for another loop iteration. Otherwise, when the condition is true, we'll continue past the loop to execute the critical section of code and then finally release the lock. Now, I want to emphasize here that the conditionVariable is not the condition itself or an event. The condition that we're checking for is the logic of the while loop. Is it this thread's turn to take soup? The conditionVariable is just a place for threads to wait until they're signaled by another thread. To implement that in this program, I'm going to turn the if statement on line 22, that checks to see if it's that person's turn, into a while loop that checks to see if it's not their turn. If it's not this thread's turn then it uses the soupTaken condition variables await method to release its hold on the slowCookerLid and wait until it gets signaled. I'll also move the print statement about the thread putting the lid back into this loop. And I'll clean things up after making those changes by deleting the empty else clause. Now, the basic pattern for signaling a condition variable involves first making sure you have a lock on the mutex, to ensure you have exclusive access to whatever comprises the condition. Then doing something that changes the state for that condition, signaling at least one of the other waiting threads to wake up, and finally, unlocking the mutex so another thread can proceed to use it. In this example, the HungryPerson takes ownership of the SlowCookerLid lock on line 20, and they will reacquire a lock on it whenever waking up from the await statement on line 24. When a thread decrements the servings variable, that's what changes whose turn it is next. So I'll use the ConditionVariable's signal method after that to let another waiting thread know it should wake up and check if it's their turn to take soup. Now I'll run the program and I see that the two HungryPeople take turns. And they don't waste a lot of energy repeatingly checking whose turn it is, although they did continue to take soup after it was all gone, so we ended up with negative servings. To fix that I'll wrap the lines that involved taking soup in an if statement to only execute if there are servings left to take. Now I'll run it again, and fixed. We end up with zero servings at the end. Now, let's see what happens if we expand this dinner party to include more HungryPeople by modifying the for loop in the program's main method to create five HungryPeople threads. And I'll also modify the condition statement on line 22 to rotate servings among those five people. Now I'll run the program again, and this time it gets stuck. The problem here is that I used the signal method, which will only wake up one of the waiting threads. If it doesn't wake up the correct thread, whose turn it is next, then the program will get stuck. So, I'll close the console to terminate this program, and the fix here is to change that method on line 29 to signal all, to notify all of the waiting threads to wake up and check that it's their turn. Now when I run the program, everything works great. All of the threads eat and they take turns signaling each other to do so. If you only need to notify one of the waiting threads, and you don't care which one it is, then the basic signal method works fine. But in this example, since I wanted a specific thread to wake up and see that it's their turn, relying on the signal method to wake up the right thread will lead to the program getting stuck.
+###
+###
+## 2. Barriers
+###
+## 3. Asynchronous Tasks
+###
+###
+## 4. Evaluating Parallel Performance
+
+## 5. Challenge Problems
+
+## Conclusion
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# TODO
+Create a more concised note of this course
