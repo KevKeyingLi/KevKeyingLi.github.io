@@ -753,14 +753,13 @@ To resolve this livelock, I'm going to introduce some randomness by importing th
 
 Busy waiting, aka. spinning: repeatedly acquiring and releasing the lock to check for a certain condition to continue. It isn't very efficient, especially if it goes on for a long time.
 
-
-This is one of the limitations of using just a mutex. 
+This is one of the limitations of **using just a mutex**. 
 * Sure, it restricts multiple threads from taking soup at the same time
 * **but** the mutex alone doesn't give our threads **a way to signal each other to synchronize our actions**. To do that, we can use another mechanism called a **condition variable**
 
-Condition variable: a queue or container for threads that are waiting for a certain condition to occur. Think of it as a place for threads to wait and be notified. 
+**Condition variable**: a queue or container for threads that are waiting for a certain condition to occur. Think of it as a place for threads to wait and be notified. 
 
-The condition variable is associated with a mutex. The condition variable + a mutexthey = a higher level construct called a **monitor**. 
+The condition variable is associated with a mutex. **The condition variable + a mutexthey = a monitor**, a higher level construct. 
 
 Monitors
 * protect a critical section of code with mutual exclusion
@@ -786,18 +785,17 @@ Monitors
     - locking the door behind it, execute the critical section
 
 
-
 Now, the condition variable has three main operations. 
-* Wait:
+* `wait`:
     - Before using a condition variable, the thread acquires the mutax, check the condition, and the condition doesn't meet
     - automatically release lock on the mutex
     - go to sleep and enter waiting queue
     - reacquire lock when woken up
-* signal
+* `signal`
     - wake up one thread from condition variable queue
     - called `signal`, `notify`, `wake` depending on language
     - release lock on mutex
-* broadcast
+* `broadcast`
     - wake up all threads from condition variable queue
     - may be called `notifyAll` or `wakeAll`
 
@@ -810,17 +808,250 @@ Now, the condition variable has three main operations.
 #### implementing a **shared queue or buffer**
 * mutex
 * condition variables
-    - bufferNotFull
-    - bufferNotEmpty
+    - bufferNotFull: for threads adding item
+    - bufferNotEmpty: for threads taking item
 
 A more common use case that requires multiple condition variables is implementing a **shared queue or buffer**. If multiple threads will be putting items in a queue and taking them out, then it needs a mutex to ensure that only one thread can add or remove items from it at a time, and for that, we can use two condition variables. If a thread tries to add an item to the queue, which is already full, then it can wait on a condition variable to indicate when the buffer is not full. And if a thread tries to take an item but the queue's empty, then it can wait on another condition variable for `BufferNotEmpty`. These condition variables enable threads to signal each other when the state of the queue changes.
 ### Condition variable: Java demo
-Selecting transcript lines in this section will navigate to timestamp in the video
-- [Instructor] This Java program, to demonstrate using condition variables, defines a class named HungryPerson on line seven, which has three variables, an instance variable named personID on line nine, which is a unique ID number that gets passed to the HungryPerson constructor method, a static class variable named slowCookerLid, which is the reentrant lock that protects access to the third variable on line 11, representing the number of servings in the slow cooker, which gets initialized to 11. When a HungryPerson thread starts, the run method uses a while loop on line 18 to keep taking servings of soup until there's none left. For each iteration of the loop, the HungryPerson takes the slowCookerLid by locking it on line 19, then they check to see if it's their turn to take the next serving by comparing their ID number to the number of servings left, modulo two since there are two people in this example. If it is their turn, and there's soup left in the pot, then they take a serving of soup by decrementing the shared servings value on line 22 and print a message that includes how much soup is left. If it was not their turn, then they print a message about putting the lid back, and then finally, on line 30, the thread unlocks the slowCookerLid for another HungryPerson to take. Down in the main method, I simply use a for loop on line 38 to create and start two HungryPeople to eat soup. If I run this program I see that these two threads spend a lot of cycles checking to see if it was their turn and then putting the pot lid back. If I scroll up through the output I see that over the course of all that, the two threads do take turns eating, and it's just not very efficient. So let's use a condition variable for them to communicate. I'll add a static condition object to the HungryPerson class to signal after one of the threads has taken soup. And I'll associate that condition variable with the slowCookerLid by creating it with a newCondition method on that object. The basic usage pattern for a condition variable involves locking the mutex, then using a while loop to check if the condition we're looking for is true. If it's not true, then we'll wait on the condition variable for another loop iteration. Otherwise, when the condition is true, we'll continue past the loop to execute the critical section of code and then finally release the lock. Now, I want to emphasize here that the conditionVariable is not the condition itself or an event. The condition that we're checking for is the logic of the while loop. Is it this thread's turn to take soup? The conditionVariable is just a place for threads to wait until they're signaled by another thread. To implement that in this program, I'm going to turn the if statement on line 22, that checks to see if it's that person's turn, into a while loop that checks to see if it's not their turn. If it's not this thread's turn then it uses the soupTaken condition variables await method to release its hold on the slowCookerLid and wait until it gets signaled. I'll also move the print statement about the thread putting the lid back into this loop. And I'll clean things up after making those changes by deleting the empty else clause. Now, the basic pattern for signaling a condition variable involves first making sure you have a lock on the mutex, to ensure you have exclusive access to whatever comprises the condition. Then doing something that changes the state for that condition, signaling at least one of the other waiting threads to wake up, and finally, unlocking the mutex so another thread can proceed to use it. In this example, the HungryPerson takes ownership of the SlowCookerLid lock on line 20, and they will reacquire a lock on it whenever waking up from the await statement on line 24. When a thread decrements the servings variable, that's what changes whose turn it is next. So I'll use the ConditionVariable's signal method after that to let another waiting thread know it should wake up and check if it's their turn to take soup. Now I'll run the program and I see that the two HungryPeople take turns. And they don't waste a lot of energy repeatingly checking whose turn it is, although they did continue to take soup after it was all gone, so we ended up with negative servings. To fix that I'll wrap the lines that involved taking soup in an if statement to only execute if there are servings left to take. Now I'll run it again, and fixed. We end up with zero servings at the end. Now, let's see what happens if we expand this dinner party to include more HungryPeople by modifying the for loop in the program's main method to create five HungryPeople threads. And I'll also modify the condition statement on line 22 to rotate servings among those five people. Now I'll run the program again, and this time it gets stuck. The problem here is that I used the signal method, which will only wake up one of the waiting threads. If it doesn't wake up the correct thread, whose turn it is next, then the program will get stuck. So, I'll close the console to terminate this program, and the fix here is to change that method on line 29 to signal all, to notify all of the waiting threads to wake up and check that it's their turn. Now when I run the program, everything works great. All of the threads eat and they take turns signaling each other to do so. If you only need to notify one of the waiting threads, and you don't care which one it is, then the basic signal method works fine. But in this example, since I wanted a specific thread to wake up and see that it's their turn, relying on the signal method to wake up the right thread will lead to the program getting stuck.
-###
-###
+01_02
+
+> This Java program, to demonstrate using condition variables, defines a class named HungryPerson on line seven, which has three variables, an instance variable named personID on line nine, which is a unique ID number that gets passed to the HungryPerson constructor method, a static class variable named slowCookerLid, which is the reentrant lock that protects access to the third variable on line 11, representing the number of servings in the slow cooker, which gets initialized to 11. When a HungryPerson thread starts, the run method uses a while loop on line 18 to keep taking servings of soup until there's none left. For each iteration of the loop, the HungryPerson takes the slowCookerLid by locking it on line 19, then they check to see if it's their turn to take the next serving by comparing their ID number to the number of servings left, modulo two since there are two people in this example. If it is their turn, and there's soup left in the pot, then they take a serving of soup by decrementing the shared servings value on line 22 and print a message that includes how much soup is left. If it was not their turn, then they print a message about putting the lid back, and then finally, on line 30, the thread unlocks the slowCookerLid for another HungryPerson to take. Down in the main method, I simply use a for loop on line 38 to create and start two HungryPeople to eat soup. If I run this program I see that these two threads spend a lot of cycles checking to see if it was their turn and then putting the pot lid back. If I scroll up through the output I see that over the course of all that, the two threads do take turns eating, and it's just not very efficient. 
+
+> So let's use a condition variable for them to communicate. I'll add a static condition object to the HungryPerson class to signal after one of the threads has taken soup. And I'll associate that condition variable with the slowCookerLid by creating it with a newCondition method on that object. The basic usage pattern for a condition variable involves locking the mutex, then using a while loop to check if the condition we're looking for is true. If it's not true, then we'll wait on the condition variable for another loop iteration. Otherwise, when the condition is true, we'll continue past the loop to execute the critical section of code and then finally release the lock. Now, I want to emphasize here that the conditionVariable is not the condition itself or an event. The condition that we're checking for is the logic of the while loop. Is it this thread's turn to take soup? The conditionVariable is just a place for threads to wait until they're signaled by another thread. To implement that in this program, I'm going to turn the if statement on line 22, that checks to see if it's that person's turn, into a while loop that checks to see if it's not their turn. If it's not this thread's turn then it uses the soupTaken condition variables await method to release its hold on the slowCookerLid and wait until it gets signaled. I'll also move the print statement about the thread putting the lid back into this loop. And I'll clean things up after making those changes by deleting the empty else clause. Now, the basic pattern for signaling a condition variable involves first making sure you have a lock on the mutex, to ensure you have exclusive access to whatever comprises the condition. Then doing something that changes the state for that condition, signaling at least one of the other waiting threads to wake up, and finally, unlocking the mutex so another thread can proceed to use it. In this example, the HungryPerson takes ownership of the SlowCookerLid lock on line 20, and they will reacquire a lock on it whenever waking up from the await statement on line 24. When a thread decrements the servings variable, that's what changes whose turn it is next. So I'll use the ConditionVariable's signal method after that to let another waiting thread know it should wake up and check if it's their turn to take soup. Now I'll run the program and I see that the two HungryPeople take turns. And they don't waste a lot of energy repeatingly checking whose turn it is, although they did continue to take soup after it was all gone, so we ended up with negative servings. To fix that I'll wrap the lines that involved taking soup in an if statement to only execute if there are servings left to take. Now I'll run it again, and fixed. We end up with zero servings at the end. Now, let's see what happens if we expand this dinner party to include more HungryPeople by modifying the for loop in the program's main method to create five HungryPeople threads. And I'll also modify the condition statement on line 22 to rotate servings among those five people. Now I'll run the program again, and this time it gets stuck. The problem here is that I used the signal method, which will only wake up one of the waiting threads. If it doesn't wake up the correct thread, whose turn it is next, then the program will get stuck. So, I'll close the console to terminate this program, and the fix here is to change that method on line 29 to signal all, to notify all of the waiting threads to wake up and check that it's their turn. Now when I run the program, everything works great. All of the threads eat and they take turns signaling each other to do so. 
+
+> *If you only need to notify one of the waiting threads, and you don't care which one it is, then the basic signal method works fine. But in this example, since I wanted a specific thread to wake up and see that it's their turn, relying on the signal method to wake up the right thread will lead to the program getting stuck.*
+
+#### Using a conditiona variable
+* acquire the mutex first
+* check if some contiiton is not true, wait for signal
+* once signaled, condition matches, execute critical section
+* release mutex
+```
+mutex.lock();
+while (some condition not true) {//The condition
+    conditionVariable.await();//wait here until signaled
+}
+
+//Execute critical section. 
+
+mutex.unlock();
+```
+#### Signaling a Condition Variable
+* acquire the mutex first
+* do something and change the contition
+* signal
+* release mutex
+
+```
+mutex.lock();
+//Do something that chagnes state of condition
+conditionVariable.signal();
+mutex.unlock();
+```
+
+### Producer–consumer
+A common design pattern in concurrent programming is the producer-consumer architecture where one or more threads or processes act as a producer which adds elements to some shared data structure and one or more other threads act as a consumer which removes items from that structure and does something with them. 
+
+> To demonstrate that, I'll be the producer serving up bowls of soup. - I guess that makes me the consumer who eats the soup. I like this demonstration. - After I fill a bowl, I'll add it to this line of bowls that represents a queue. *Queues operate on a principle called a First-In-First-Out or FIFO which means items are removed in the same order that they're put into the queue.* The first item that was added will be the first item to be removed. - So when I'm ready to consume another bowl of soup, I'll grab one from this end of the line because it's been in the queue the longest. These bowls of soup represent elements of data for the consumer thread to process or perhaps packaged tasks for the consumer to execute. 
+
+When multiple threads are operating in this type of producer-consumer situation, it poses several challenges for synchronization. 
+* First off, the queue is a shared resource, so we'll need something to enforce mutual exclusion and make sure that only one thread can use it at a time to add or remove items. 
+* We also need to make sure that the producer will not try to add data to the queue when it's full. 
+* And that the consumer won't try to remove data from an empty buffer.
+
+Some programming languages may include implementations of a queue, that's considered thread safe, and handles all of these challenges under the hood so you don't have to but if your language does not include that support, then you an use the combination of a mutex and condition variables to implement your own thread-safe synchronized queue.
+
+> (slurping) Hey, Olivia, you can slow down production. I can't eat soup this fast. - No can do, I'm a soup serving machine.
+
+#### Rate of consumer vs producer
+You may run into scenarios where the producer cannot be paused if the queue fills up. The producer might be an external source of streaming data that you can't slow down so **it's important to consider the rate at which items are produced and consumed from the queue**. **If the consumer can't keep up with production, then we face a buffer overflow and we'll lose data.** 
+
+> This table is only so big, our queue can only hold a limited number of bowls of soup before they start falling on the floor. 
+
+**Unbounded queues**(in some langs): are implemented using linked lists to have an advertised **unlimited capacity** but keep in mind, even those will be **limited by the amount of physical memory in the computer**
+
+The rate at which the producer is adding items may not always be consistent. 
+> For example, in network applications, data might arrive in bursts of network packets which fill the queue quickly but if those bursts occur rather infrequently, the consumer has time to catch up between bursts. 
+You should consider the **average rate** at which items are produced and consumed. You want the **average rate of production to be less than the average rate of consumption**.
+
+> Well, it looks like you're pouring at a pretty steady pace and I definitely can't keep up alone. I'm going to need some help. Hey Steve, do you want some soup? - You bet, my friend, I'm a soup eating machine. - Excellent. With two consumer threads eating in parallel, maybe we'll be able to keep up with Olivia's rate of production. Now there are only two tasks going on here. Olivia is serving soup while Steve and I eat it. But if more steps were required to process this data, perhaps we also need to season the soup, then we could expand our simple producer-consumer setup into a pipeline of tasks. 
+
+#### Simple producer-consumer setup can expand into a pipeline of tasks. 
+
+![Pipeline.png]()
+
+A pipeline consist of a chain of processing elements arranged so that the output of each element is the input to the next one. It's basically a series of producer-consumer pairs connected together with some sort of buffer like a queue between each consecutive element.
+> As a pipeline, I pass my full bowls of soup to a queue. - I take bowls from that queue, add spice, then I pass them along to another queue which Steve takes from to eat. If all three of our threads can execute in parallel, then as a pipeline, we're processing up to three bowls at any given moment. Now the issue of processing rates is still a concern. **Each element needs to be able to consume and process data faster than the elements upstream can produce it.**
+
+### Producer–consumer: Java demo
+
+01_04
+
+`ArrayBlockingQueue<E>` a bounded queue, implements `BlockingQueue<E>`, uses an Array.
+`BlockingQueue<E>` is thread safe, noneed for manually adding mutex.
+
+* `ArrayBlockingQueue<E>.add()`
+* `ArrayBlockingQueue<E>.take()`
+
+> This Java example has two primary classes which I currently have hidden using code folding. A SoupProducer class on line 7, and a soupConsumer class that begins on line 26. Down in the program's main method on line 47, I instantiate a blocking queue named servingLine which will be used to pass bowls of soup from producers to consumers. It's a fixed length array blocking cube which has the capacity to hold up to five string objects. I use constructor methods on lines 48 and 49 to create and start soupProducer and consumer threads, both of which take the queue as an input argument. Java's ArrayBlockingQueue is a concrete class that implements the blocking queue interface. It's a bounded queue that uses an array under the hood to hold a finite number of elements. An important thing to note about the ArrayBlockingQueue is that since it implements the blocking queue interface, it's thread safe, meaning it already has mechanisms in place to prevent multiple threads from improperly accessing it, and potentially causing a data race. So, thanks to Java, we conveniently don't need to include any locks in this example to protect the queue. Looking inside the soupProducer class, the run method uses a for loop on line 16 to serve 20 bowls of delicious hot soup. For every iteration, it tries to add a string object that represents a bowl of soup to the serving line. If there is space available in the queue then the the add method will insert the item. Otherwise, it'll throw an exception. After that, the producer prints a message on line 19 that it served a bowl along with the number of remaining spaces in the queue, and finally, on line 20, it sleeps for 200 milliseconds to simulate the time it takes to serve a bowl of soup. Now, down in the soupConsumer's run method, the while loop on line 35 will make the consumer thread continuously take and eat soup from the serving line forever. It calls the queues take method on line 37. To get the string representing a bowl of soup, it prints a message that it ate that bowl, and then, on line 39, the consumer sleeps for 300 milliseconds to simulate the time it takes to eat soup. Those are all the pieces. So, now, I'll run this program, and I see messages from the producer that it's serving bowls of soup, and from the consumer, that it's eating them. However, after a while, the soup producer throws several errors that the queue is full before it ends, and then, the consumer finishes the remaining bowls that were already placed in the queue. The problem here is that the producer is adding soup faster than the consumer can eat it. It only takes 200 milliseconds to produce a bowl of soup, but 300 milliseconds to consume it. Scrolling back up through the output, I see that the remaining capacity of the serving line gradually decreased from five down to zero before the producer threw errors. To solve this problem, I'll add a second consumer thread to this program to help eat soup. Although it takes each soup consumer 300 milliseconds to eat a bowl, now that I have two of them working together, the throughput of my program increases, so it can process a bowl every 150 milliseconds which is faster than the soupProducer serves it up. So, when I run the program now, the consumers are able to keep up with the producer, and everything works fine, except that this program never finishes running because the consumer threads are still running, waiting for more soup to come down the serving line for them to eat. So, I need to implement some sort of signal for the consumers that the producer is done, and one way to do that is to pass a final message through the queue. After the soupProducer's for loop completes, I'll add a final string to the queue with a special message for the consumer, no soup for you, and since there are two consumers, I'll need to add that twice, once for each. Now, down in the soupConsumer, after retrieving a string from the queue, I'll check to see if it says no soup for you, and if so, I'll break out of the while loop. Now, when I run this program, all of the soup gets eaten, and it finishes appropriately. I used strings to represent bowls of soup in this example, but queues can be used to pass other types of data, or other packaged tasks for the consumer thread to process.
+
+### Semaphore
+* sync mechanism
+* allows multiple threads to use
+* include a counter to track availability
+
+#### Operation `acquire()`
+* if counter > 0, decrement counter
+* if counter == 0, **wait** until it's available
+
+#### Operation `release()`
+* release semaphore, and increment counter
+* signal waitting threads
+
+A semaphore is another synchronization mechanism that can be used to control access to shared resources, sort of like a mutex, but unlike a mutex, a semaphore can allow multiple threads to access the resource at the same time, and it includes a counter to track how many times it's been acquired or released. As long as the semaphore's count value is positive, any thread can acquire the semaphore, which then decrements that counter value. If the counter reaches zero, then threads trying to acquire the semaphore will be blocked and placed in a queue to wait until it's available. When a thread is done using the resource, it releases the semaphore, which increments that counter value and if there are any other threads waiting to acquire the semaphore, they'll be signaled to wake up and do so. 
+
+#### Example
+> Hmm, looks like my phone's about to die. - Lucky us. There is a charger right here. - Nice, this charger has two ports. So it can be used by up to two devices at the same time. You can think of the number of open ports as a semaphore. Right now, this semaphore has a value of two, because there are two free ports. And when I acquire one of these ports by plugging in my phone, it decrements the semaphore's value to one. - I'll acquire the other port. And that decreases the semaphore's value to zero, which means it's unavailable for anyone else to use. - Lucky me, there's a charger right here. - Oh man, sorry Steve. The semaphore's locked right now because there aren't any available ports. You'll have to wait until one of us is done charging and releases the semaphore. - No worries, I'll wait. - You know, I don't need to charge that bad. I'll release my port, which increments the semaphore's value and I'll notify Steve that it's available. Hey Steve, wake up. - Cool, now the semaphore's positive, I can acquire it and charge my phone.
+
+#### Counting semaphore
+* value >= 0
+* used to track limited resources
+    - pool of connections
+    - items in a queue
+
+This type of semaphore that we're using here is called a counting semaphore, because it can have a value of zero, one, two, three, and so on, to represent the number of resources we have. In our scenario, we're counting available charger ports but in software, a counting semaphore might be used to manage access among multiple threads to a limited pool of connections for something like a server or a database. Or a counting semaphore could be used to track how many items are in a queue. 
+
+#### Binary Semaphore
+* value = 0 or 1
+    - 0 locked
+    - 1 unlocked
+* similar to mutex by acquiring and releasing
+* different from mutex
+    - mutex need to be acquired/released by **same** thread
+    - semaphore can be acquired/released by **different** threads
+
+
+That may sound like a recipe for trouble and it certainly can be if you're not careful, but the ability for different threads to increment and decrement a semaphore's value and for threads to wait and be signaled by the semaphore is what enables it to be used as a **signaling mechanism**, to synchronize the action between threads. 
+
+For example, a pair of semaphores can be used in a similar way to condition variables to synchronize producer and consumer threads, adding and removing elements from a shared, finite queue or buffer. One semaphore tracks the number of items in the buffer, shown here as fillCount, and the other one tracks the number of free spaces, which I'll call emptyCount. To add an element to the buffer, the producer will first acquire the emptyCount, which decrements its value, then it pushes the item into the buffer and finally it releases the fillCount semaphore to increment its value. Now, on the other side of the buffer, when the consumer wants to take an item, it first acquires fillCount to decrement its value, then it removes an item from the buffer and finally increments the emptyCount by releasing it. Notice that the producer and consumer each acquire a different semaphore as the first operation in their respective sequences. If the consumer tries to take an item when the buffer is empty, then when it tries to acquire that fillCount semaphore, it'll block and wait until a producer adds an item and releases fillCount, which will then signal the consumer to continue. Likewise, if the producer tries to add an item to the fillBuffer, then it goes to acquire the the emptyCount semaphore. It'll block and wait until a consumer removes an item and releases the emptyCount.
+
+![Producer-Consumer Semaphore.png]()
+
+
+### Semaphore: Java demo
+01_06
+
+For this Java example, I'll use a counting semaphore to control access and keep track of the number of available ports on a cell phone charger. This class named CellPhone has a static semaphore variable named charger on line nine, which I've initialized to have a value of four, representing the number of charger ports available to connect to. In the cell phone's run method, it will try to acquire the semaphore on line 17. If the semaphore is not available because its value is zero, then the thread will wait there until a charging port opens up and the semaphore is released. Once a cell phone thread has acquired the semaphore, it prints a message that it's charging and then sleeps for a random amount of time from one to two seconds. After that, the cell phone will execute the finally clause on line 22, which prints a message that it's done charging and then releases the semaphore to increment its value so another thread can acquire it. Down in the main method, I just use a for loop to create and start 10 cell phone threads on line 32. When I run this program, I see four of the phones connect immediately at the beginning, and then as each phone finishes charging and releases the semaphore, another phone acquires it to begin charging. At most, there will be four phones connected to this charger at any given time. Instead of using it as a counting semaphore, if I change the initialization value for the semaphore from four to just one, it'll act as a binary semaphore. When I run this program again, now only one thread at a time will be able to acquire the semaphore. The way I'm using the binary semaphore in this example, with the same thread that acquires it also releasing it, means it's basically acting the same as a mutex. In fact, I could replace all of the semaphore code in this particular program with re-entrant locks and it would function the same way.
 ## 2. Barriers
-###
+### Race condition
+
+#### Data race vs race condition
+* Data race: critical section is not protected
+* Race condition: the order of execution is not deterministic, resulting in inconsistent results
+
+
+<!-- Simplify following lines -->
+Data races and race conditions are two different potential problems in concurrent programs that people often confuse with each other probably because they have similar sounding names with the word race in them. 
+* Data races can occur when two or more threads concurrently access the same memory location. If at least one of those threads is writing to or changing that memory value, that can cause the threads to overwrite each other or read wrong values. - That's a pretty straightforward definition, which makes it possible to create automated tools to identify potential data races in code, and to prevent those data races, you need to ensure mutual exclusion for the shared resource.
+* A race condition, on the other hand, is a flaw in the timing or ordering of a program's execution that causes incorrect behavior. 
+
+In practice, many race conditions are caused by data races, and many data races lead to race conditions, but **those two problems are not dependent on each other.**
+
+It's possible to have data races without a race condition and race conditions without a data race. 
+
+#### Example
+> Olivia and I invited Steve and the gang over to play video games next weekend, so we need to figure out how many bags of chips we need to buy to keep them all fed. Our shopping list is the shared resource, and this pencil serves as a mutex to protect it. Only the person or thread with the pencil can view or modify the shopping list. - I'll go first. I see that our shopping list already has one bag of chips. With Steve and the gang coming over, I think we need three more. So one plus three, that means we need four bags. - Well, I always overestimate the amount of chips we need for a party, so I'm going to double that. I see we have four, two times four is eight. Great, we need eight. Now, let's rewind that and see how else those operations could've played out if our two threads got scheduled differently. (tape rewinding) - I'll go first. - Hold on. I'll go first this time. I see one bag of chips but I like to overestimate, so I'll double that. One times two is two. - Thanks, now I'll add three bags to that. Two plus three is, hmm, five bags is less than the eight we calculated last time. - (sighs) Don't tell me we're not going to have enough chips for the party. - That's okay. We'll fix this. (lets out a sigh of relief) 
+
+**Even though we're using this pencil as a mutex to protect against a data race, the potential for a race condition still exists because the order in which our threads execute is not deterministic.**
+ * When deciding how many bags to buy, if my thread runs first to add three bags before Baron doubles it, that gives us eight
+ * but if Baron's thread runs first to double the original value before I add three bags, then we end up with five. 
+
+#### Race condition is a Heisenbug
+The race condition we've created here is fairly straightforward, but in practice, race conditions can be really hard to discover, and that's because a program might run correctly for millions of times while you're building and testing it, so you think everything's fine. You release the finished program, and then one time, things happen to execute in a different order and that causes an incorrect result. 
+ 
+Unfortunately, **there's not a single catchall way to detect race conditions**. Sometimes putting sleep statements at different places throughout your code can help to uncover potential race conditions by changing the timing and therefore order in which threads can execute it. That said, race conditions are often a type of **Heisenbug**, which is *a software bug that seems to disappear or alter its behavior when you try to study it*. Running debuggers and doing things to affect the timing of your code in search of a race condition may actually prevent the race condition from occurring.
+### Race condition: Java demo
+02_02
+
+This example demonstrates a race condition in Java. It has a class named shopper, which will execute as a thread, that either adds or multiplies the value of the bags of chips, class variable, on line nine, which represents the number of chips we should buy for the party. Down in the program's main method, I use a for loop on line 41, to instantiate 10 shoppers. Five of those threads are named Barron, with a unique number afterwords, and the other five are named Olivia. As in our kitchen scenario, the five Olivia threads will each add three bags of chips to the shared variable, whereas the five Barron threads will each double the amount of chips. That's accomplished in the shopper classes run method, by using an if, else statement, beginning on line 17, that checks the name of the thread. Notice that in either case, the shopper is locking and unlocking a reinterent lock named pencil, which serves as the shared new text to protect access to the shared bags of chips variable. Since only one thread can read or write that variable at a time, this program is protected against having a data race, but it's still vulnerable to a race condition. To show that, I'll run the program. And after all 10 threads finish, it prints a message that we need 242 bags of chips. Now if I run it again, this time we need 344 bags of chips. The relative order in which Barron and Olivia's threads were scheduled to add and multiply the bags of chips was different, which gave me a different result. And if I run it again, I get yet another answer. Again, the problem here is not a data race, because I've guaranteed mutual exclusion, by having the shoppers lock the pencil before modifying the bags of chips. However, there is a race condition here because the order in which these threads get scheduled to execute, changes the final result.
+### Barrier
+To prevent our race condition from occurring, we need a way to synchronize our actions so we execute our respective multiplication and addition operations in the correct order. And we can do that with something called a barrier. 
+
+**Barrier: a stopping point that prevents a group of threads from proceeding until all or enough threads have reached the barrier.**
+
+I like to think of threads waiting on a barrier like players on a sports team coming together for a huddle. Before they join the huddle, the players might be doing other things, putting on their equipment, or getting a drink of water. As they finish those individual activities, they join their teammates at the huddle. Players in the huddle wait there until all of their fellow teammates arrive, then then all yell break, and then they scatter about to continue playing their game.
+
+We can use a similar strategy here to solve our race condition. Huddling together to synchronize when we each execute our operations to add and multiply items on the shopping list. **I should complete my operation of adding three bags of chips to the list before we huddle together. Then, afterwards, Barron can double the amount.** - Sounds good. - I'm scheduled to execute first this time, so I'll acquire the pencil. I'll add my three bags of chips to the list. (erasing) And release my lock on the pencil. And then meet you at the huddle. Don't leave me hangin'. - I don't have anything to do before the huddle, so - [Together] Break! - Now we're past the barrier, so I'll double the number of chips. That gives us eight, which is the right amount.
+
+By using a barrier, the order in which our threads actually get scheduled to execute doesn't matter because the barrier synchronizes us. Olivia always adds three bags before the barrier, and I multiply by two after it. If we were to run that program again and I happened to get scheduled first, well, I don't have anything to do before the barrier, so I'll wait for Olivia. - When I eventually get scheduled to execute, I'll complete my operations, then join the barrier. - [Together] Break! - Now I'm free to continue doing whatever else I need to do. I'm going to see if we have any salsa. - And I can double the chips on our shopping list. Although the order in which our threads got scheduled was different, the end result is the same. We need eight bags of chips for the party.
+### Barrier: Java demo
+02_04
+
+
+```
+import java.util.concurrent.*;
+private static CyclicBarrier fistBump = new CyclicBarrier(int parties);
+
+
+public void run() {
+
+    ...
+    try {
+        fistBump.await();
+    } catch (InterruptedException | BrokenBarrierException e) {
+        e.printStachTrace();
+    }
+    ...
+}
+```
+#### CyclicBarrier
+CyclicBarrier: can be reused after all the waiting threads are released.
+* int getParties() - total numebr of threads needed to trip barrier
+* int getNumberWaiting(): current number of waiting threads
+* void reset(): reset barrier to initial state
+* boolean isBroken: has a thread broken out since last reset
+
+#### Transcript
+> To show you how to implement a barrier in Java I'll build on the previous example that demonstrated a race condition by creating 10 shopper threads that either added or multiplied the number of chips to buy, depending on if the thread was named Barron or Olivia. Without a barrier in place, if I run this program, it has a race condition that'll produce different results every time I run it. So, I'll use Java's cyclic barrier to make sure all five of the Olivia threads, execute their add operation before the five Barron threads multiply the bags of chips. The cyclic barrier is included in the Java concurrent package, so I'll import that at the top of the program. Then, I'll instantiate a new CyclicBarrier object called fistBump as a static variable in the Shopper class. The constructor takes an argument for the number of threads to wait on before the barrier releases. Since this program instantiates 10 shopper threads total, five named Barron and five named Olivia, and I want all of them to arrive at the barrier together before the program continues, I'll give it an input of 10. Now that I've created the barrier, it's time to figure out where to use it. In this program I'm starting all of the shopper threads together, and I can't control when each one will get scheduled to execute. But all I really care about here is making sure that all of the Olivia threads execute their addition operation before the Barron threads execute the multiplication. So I'll use my barrier to separate those operations. The Olivia threads will execute their addition operations before they wait at the barrier, whereas the Barron threads will go straight to waiting at the barrier. Once all 10 threads have arrived at the barrier and are waiting on it, then the barrier will release and the Barron threads will all execute their multiplication operations. Going back to code and looking at the run method, to implement that for the Olivia shoppers, I'll add the code to wait on the barrier after adding three bags of chips on line 22 and then releasing the pencil lock. I'll start a try statement and put the call to fistBump.await inside of it. Then, on the next line I'll need to include a catch clause. And there are two types of exceptions that can be thrown by the cyclic barrier, the usual InerruptedException and another one called BrokenBarrierException. I'll use the pipe operator to catch either of those if they occur and then print a stack trace. Now, I'll copy those lines of code for waiting on the barrier, and down in the Barron case I'll paste them before the Barron thread takes the pencil to execute its multiplication operation. I'll build and run this program. And now all of the Olivia shoppers execute their addition operation first, and then all of the Barron shoppers do their multiplication afterwards. That gives me a final total of 512 bags of chips. And if I run this program again I'll always get that same answer. This type of barrier is called cyclic because it can be reused after the waiting threads are released. Java's cyclic barrier has a few other useful methods. GetParties gives you the total number of threads needed to trip the barrier. GetNumberWaiting returns the number of threads that are currently waiting on the barrier. The reset method allows you to reset the barrier to its initial state so you can reuse the barrier object. And finally, the isBroken method can be used to check if one of the threads waiting on the barrier has broken out due to an interruption or timeout since the barrier was constructed or last reset.
+
+### CountDownLatch: Java demo
+CountDownLatch that allows one or more threads to wait until a set of operations being performed in other threads completes. 
+* `CountDownLatch(value)`: The CountDownLatch is initialized with a given count value. 
+* `await()` Threads can then either wait at the latch until that count value reaches zero, much like how threads can wait at a CyclicBarrier
+* or `countDown()`: they can decrement the count value by invoking the countDown method. 
+
+#### CyclicBarrier vs CountDownLatch
+CyclicBarrier
+* releases when a certain number of threads are waiting on it
+* Can be reset
+
+CountDownLatch
+* releases after the countDown method gets called enough times to reduce the **count value to zero**. 
+* a one-shot mechanism, no reset. If you need to reset that countDown value, you'll just need to create a new latch object. 
+
+#### Java demo
+02_05
+
+```
+private static CountDownLatch fistBump = new CountDownLatch(5);
+
+run() {
+    fistBump.countDown();
+    ...
+    //or 
+    fistBump.await()
+}
+```
+> To demonstrate the CountDownLatch in code, I'll modify the previous example that used a CyclicBarrier to use a CountDownLatch instead. In the shopper class, I'll replace the CyclicBarrier named fistBump on line 12 with a CountDownLatch. And I'll initialize the countDown value to five because there are five Olivia threads that need to execute before the other Barron threads. Down in the Olivia case of the if/else statement, I'll delete the barrier code on lines 27 through 31 and replace it with a call to the latches countDown method. After each of the Olivia threads finishes adding their three bags of chips, they'll call this method to decrement the count value. Next, down in the Barron case, the latch has an await method that's similar to the CyclicBarriers await method so I can leave that call to the await method on line 30 as is. However, the CountDownLatch does not throw the BrokenBarrierException, so I'll need to remove that from the catch statement on line 31. Now when I run this program, I get the same result as with the CyclicBarrier. I'm just using a different mechanism to do so. Now to demonstrate something that can go wrong with CountDownLatches, if I were to increase the countDown initialization value on line 12 from five to 10 and run this code again, now the program gets stuck waiting at the latch because there are only five Olivia threads invoking the countDown method, so it never reaches zero. So always make sure your program will be able to execute the countDown method enough times to avoid getting stuck like this. 
+
+#### Common useage of CountDownLatch
+* Initialize count to 1
+    - A simple on/off gate
+* Initialize count to N
+    - Wait for N threads to complete some action
+    - or Wait for some action to complete N times
+
+Keep in mind that the CountDownLatch doesn't require the threads that are calling CountDown to wait there until proceeding, they're free to continue. It only prevents threads that call await() from proceeding before the count reaches zero.
 ## 3. Asynchronous Tasks
 ###
 ###
