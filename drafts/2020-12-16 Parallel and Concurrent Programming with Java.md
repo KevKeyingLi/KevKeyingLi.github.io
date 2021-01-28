@@ -1053,13 +1053,500 @@ run() {
 
 Keep in mind that the CountDownLatch doesn't require the threads that are calling CountDown to wait there until proceeding, they're free to continue. It only prevents threads that call await() from proceeding before the count reaches zero.
 ## 3. Asynchronous Tasks
-###
-###
+### Computational graph
+The key to parallel programming is determining which steps within a program can be executed in parallel and then figuring out how to coordinate them, and one tool to help model how steps in a program relate to each other is a **computational graph**. 
+
+> Consider the steps to make a very simple salad. I'll need to chop some lettuce, chop some tomatoes, mix those chopped ingredients together, and then finally add salad dressing. 
+
+Each of those steps represents a task which is a unit of execution or a unit of work. I can draw those tasks as nodes in a graph and use arrows to indicate progression from one task to the next. A task cannot begin executing until all of the tasks with arrows feeding into it have completed. When those four tasks are arranged sequentially like this, they represent a single path of execution which could be implemented as a single thread or process. If I do those steps in that order, I'll make a somewhat boring salad, but that's not the only ordering that could work. 
+
+![Computational graph.png]()
+
+#### Spawn/fork
+**asynchronous** execution of tasks: the order doesn't matter
+
+The tasks of chopping lettuce and chopping tomatoes can occur asynchronously, meaning the order in which they happen relative to each other doesn't really matter. I could chop the lettuce first or the tomatoes first, or ideally, I'll chop them both in parallel to save some time. So I'll add another node to the front of my diagram labeled spawn which has two output arrows leading into the two asynchronous chopping tasks. Both tasks can begin running at any time after the spawn operation. 
+
+#### Sync/join
+**Sync** when there is dependency, waiting is needed.
+
+Now, there is a dependency between those two chopping tasks and the third task, because I can't mix the chopped ingredients together until both of the chopping tasks are complete. My program will need some form of synchronization, so I'll add another node to represent that operation. This sync node will not be able to execute until both of the chopping tasks that feed into it are complete. 
+
+I've used the terms spawn and sync here but you'll also see the terms fork and join used in this context. 
+
+**not any direct edges or connections** means possibly parallel execution
+The fact that there are not any direct edges or connections between the chopped lettuce and chopped tomato tasks indicates the possibility for parallel execution. So if this program was implemented using two threads as shown here, with a second thread spawning or forking from the main thread, the two chopping tasks can run at the same time. 
+
+DAG: This type of diagram is called a directed acyclic graph or DAG. Directed because each edge is directed from one node or vertex to another, and acyclic meaning it doesn't have any loops that cycle back on itself.
+
+There are several variations and ways to draw these types of computational graphs, but their general-purpose is to
+ * provide an abstract representation of the program. They help to visualize the relationship and dependencies between tasks. 
+ * They can also be used to get a sense of how parallel a program can be. 
+
+**Work**: sum of time for all nodes
+
+Every node represents a task or operation, and for each one, I'll indicate the amount of time it takes to execute. For this example, I'm just using made-up numbers and units of seconds. If I add together the execution times for all of the nodes, that gives me a metric called **work** which represents the time it would take to execute all of these tasks on a single processor. For this example, that comes out to 60 seconds. 
+
+**critical path**: longer series of sequential operations through the program
+**span**: sum of time along the critical path, indicates the shortest possible execution time if this program was parallelized as much as possible
+
+
+Next, I'll identify the longest possible path through this graph following the directed edges from node to node which is referred to as the **critical path**. It represents the longer series of sequential operations through the program. If I add together the times for all of those nodes along the critical path, I get another metric called span which indicates the shortest possible execution time if this program was parallelized as much as possible. In this case, that's 45 seconds. 
+
+**Ideal Parallelism ratio** = work/span.
+
+The ratio of work to span indicates the ideal parallelism of this program. How much faster can the parallel version of this program possibly run using multiple processors than the sequential version running on just one processor? The parallelism ratio of 1.33 means that at very best, the parallel version of this program will be 33% faster than the sequential version. 
+
+
+We may not be able to reduce the total amount of work a program needs to do, so **minimizing the critical path** is important in designing parallel algorithms, because span determines the shortest possible execution time.
+
+### Thread pool
+#### Intro
+After identifying the tasks in a program that can run asynchronously, one way to run those tasks in parallel is to create independent threads or processes for each of them. 
+
+Preparing a basic salad requires us to chop lettuce and chop tomatoes. So Olivia and I will act as independent threads to execute those tasks in parallel on our two processors, the knives. - A salad with just lettuce and tomatoes is so boring. We need something more. What about cucumbers? - Sure. Chopping cucumbers is another task that can run asynchronously so we'll spawn another thread to handle that. Hey Barron. - Hey Barron. - We need onions too. What's up, Olivia? - What's up? - Another task, another thread. - And mushrooms. - Again, another thread. - And carrots, and celery, and peppers and an eggplant. - Whoa, whoa, whoa. It's getting crowded in here. 
+
+We've got to lot of threads in the kitchen but only two processors to execute on. That means a lot of threads'll be standing around waiting their turn. Although threads are considered to be lightweight, every time we spawn a new thread it does require some amount of overhead in terms of processor time and memory, or in this case, kitchen space. 
+
+In some scenarios, rather than creating a new thread for every single task, it can be more efficient to use a thread pool
+
+#### Use a thread pool
+Thread pool
+* Creates and maintains a collection of worker threads. 
+* the program submits tasks to the thread pool, the thread pool reuses existing worker threads to execute the task. 
+
+
+Submitting tasks to a thread pool is like adding them to a to-do list for the worker threads. 
+
+> Now, Olivia and I are two workers in a pool and we have a queue of tasks, or vegetables, waiting for us to chop. After one of us finishes executing our current task, we'll take another one from the queue. - I'm done chopping the tomatoes so I'll move on to the cucumbers.
+
+**Benefit of thread pool**: Reusing threads with a thread pool addresses the overhead involved with creating new threads, especially when the time it takes to execute the task is less than the time required to create a new thread.
+
+> It doesn't take long to chop one of the vegetables but it does take a long time to call up our friends to take on each of these individual tasks. - Since our threads already exist, when a new task arrives, we eliminate the delay of thread creation which can make our program more responsive.
+
+
+### Thread pool: Java demo
+
+`ExecutorService` Interface
+* Defined in `java.util.concurrent`
+* higher level interface for running tasks
+* includes features to manage the executor and task lifecycle
+
+![Executor.png]()
+The executor maintains a queue of the tasks that get submitted to it and then it uses the existing threads in its thread pool to run those tasks asynchronously.
+
+`Executors` class factory methods. Two common ones:
+* `newSingleThreadExecutor()`: creates an executor that reuses a single worker thread to execute the tasks that are submitted to its queue
+* `newFixedThreadPool(int nThreads)`: creates a thread pool that reuses a fixed number of threads to executed submitted tasks
+
+`ExecutorService` Methods:
+* To submit task: `Future ExecutorService.submit(Runanble | Callable t)`
+* To shut down executor: `ExecutorService.shutdown()`. Submitted tasks are still runned, but no new tasks are accepted.
+
+#### Exercise
+03_03
+
+```
+import java.util.concurrent.*;
+
+...
+    int numProcs = Runtime.getRuntime().availableProcessors();
+    ExecutorService pool = Executors.newFixedThreadPool(numProcs);
+    for(...) {
+        pool.submit(new VegeChopperThread());
+    }
+...
+```
+
+#### Transcript
+> To create thread pools in Java, I'll be using the ExecutorService interface, which is defined in the java.util.concurrent package. It serves as a higher level interface for launching new runnable tasks rather than working with threads directly. And it includes several features to help manage the lifecycle of individual tasks as well as the executor itself. 
+
+Under the hood, the executor service manages a pool of threads, so we don't have to create new threads manually. The executor maintains a queue of the tasks that get submitted to it and then it uses the existing threads in its thread pool to run those tasks asynchronously. The executors class provides several factory methods for creating different kinds of executor services. Two of the most common methods are the new single thread executor, which creates an executor that reuses a single worker thread to execute the tasks that are submitted to its queue and the new fixed thread pool method, which creates a thread pool that reuses a fixed number of threads to executed submitted tasks.
+
+> To demonstrate that, I've created this program which defines a basic thread class called vegetable chopper, which has a run method that simply prints a message on line seven with the name of the currently executing thread and it says that it chopped a vegetable. Down in the main method, I use a for loop on line 13 to manually create and start 100 vegetable chopper threads. If I run this program, it creates 100 separate threads to chop a 100 vegetables and I see all of their unique names in the output, ranging from thread zero to thread 99. Now, let's accomplish that same set of tasks of chopping 100 vegetables but do so with an executor thread pool instead. To use the executor service, I'll first need to import the java.util.concurrent package at the top of the program. Then down in the main method, I'll check how many processors are available on this machine using the Runtime.getRuntime. The machine I'm currently using is pretty beefy and has 24 logical processors. Next I'll create a new executor service named pool, using the executors dot new fixed thread pool method. And I'll create that pool with the same number of worker threads as processors in my system. After that, I'll modify the for loop so that rather than creating and starting new threads, it will create vegetable chopper objects and submit them to the thread pool. The submit method adds the runnable tasks to the thread pools queue to be executed. Now I'll build and run this program. The output still prints 100 messages because the program chops a 100 vegetables but the thread names are different now. I can see that all of these threads belong to pool number one but the thread numbers are only going between one to 24 because I'm reusing the same 24 threads in the pool to execute all 100 tasks. Now, notice that I didn't get a process finished method at the end and that's because this program is still running. The executor service is still active and waiting for more tasks to be submitted. I need to manually shut it down, so I'll close the terminal to terminate this program. Then after the for loop on line 17 and 18, I'll call the shut down method on my thread pool object. This will initiate an orderly shut down, in which any previously submitted tasks will still be executed but the pool will not accept any new tasks. Now when I run this program, after the thread pool finishes chopping all 100 vegetables, the program is able to properly finish.
+### Future
+* placeholder for results that will be available later
+* Mechanism to access the result of an asynchronous operation
+* read-only
+* Future fulfills/resolves with result value, others need to wait for resolution. 
+
+#### Transcript
+Launching asynchronous tasks is a great way to accomplish multiple things at once.
+
+> Olivia, can you go check how many vegetables are in the pantry? - Sure, I can do that. - While Olivia is busy asynchronously counting veggies, my thread is free to continue doing other work. But now she's gone and I need a way to get that result back from her when she's done. This is where a mechanism called a future can be used. 
+
+A future acts as a placeholder for a result for a result that's initially unknown, but will be available at some point in the future. It provides a mechanism to access the result of an asynchronous operation. I like to think of a future like an IOU note for the result.
+
+> Hey Oliva! - Hey-o. - Hey, I need you to check how many vegetables are in the pantry and give me back an answer. - Sure, I promise to do that and here's an IOU note that I'll get you that answer. - Thank you. Now I've got a handle to see that future result and I'll hold onto it as I continue doing other work in the kitchen.
+
+Eventually, I may reach a point in my work that I need the result from Olivia, perhaps to make a decision or complete some type of computation. The future is **read-only** and I see that the result isn't ready yet, so all I can do is **wait** until Olivia finishes. When she finally does, she'll write the result value to that future, which is called **resolving or fulfilling** it. 
+
+> She's fulfilling her promise to get me an answer and I see we have zero veggies left in the pantry. - We chopped them all up making salads. - Well, at least now I have an answer and know I need to make a trip to the store.
+
+### Future: Java demo
+`Callable<V> interface`: task that returns a result of type V and may throw an exception
+* since 1.5
+```
+public interface Callable<V> {
+    V call() throws Exception;
+}
+```
+
+`Runnable`
+* 1.0
+```
+public interface Runnable {
+    void run();
+}
+```
+
+`Callable<V>` and `Runnable`
+* No other difference except `Callable<V>` returns value and throws Exception
+* Both are used to be executed by thread
+* both can be submitted to `ExecutorService.submit()`;
+
+03_05
+
+```
+import java.util.concurrent.*;
+
+class HowManyVege implements Callable {
+    public Integer call() throws Exception {
+        ...
+        return n;
+    }
+}
+...
+    ExecutorService pool = Executors.newSingleThreadExecutor();
+    Future result = pool.submit(new HowManyVege());
+    // Main thread continue to run while the result getting returned
+    Integer n = result.get();//This will block if value is not available.
+    pool.shutdown();
+...
+```
+
+
+
+#### Transcript
+To get the result back from an asynchronous task in Java I can use the callable interface which represents a task that returns a result of a specified type. The callable interface is similar to Java's runnable interface except that instead of having a method named run that returns void the callable interface has a single method named call which returns a value of some type and may throw an exception as well. To demonstrate creating and using a callable, I'll start with this basic shell of a Java program. First, I'll import the java.util.concurrent package into this program. Then I'll create a new class called HowManyVegetables that implements the callable interface. Within that class I'll create a public method named call that returns an integer value and throws an exception. My call method will print a message that Olivia is counting vegetables. Then I'll have it sleep for three seconds to simulate the time it takes for her to complete that task. And finally the method will return an integer value. And for simplicity I'll make it a static value of oh, let's say 42. Now to use that callable down in the main method, I'll print a message the the beginning of the program when Barron asks Olivia how many vegetables are in the pantry. Then I'll create a new executor service using the executors class, and since I don't need a lot of threads for this example, I'll use the new single thread executor method. After that I'll use the executors submit method to give it a callable HowManyVegetables object as the task to execute in the same way that I would pass a thread or runnable object to the submit method. However since the callable returns a value, I need to capture that result. The submit method actually returns an object of the type future, so I'll create a new future variable called result to capture that output. After that I'll print a quick message to show that Barron can do other things while he waits for the result. And then I'll use one final print statement to show the result value from the callable. Calling the future objects git method will return that value however if the result hasn't been set yet by the callable then invoking the git method will block and wait there until it's ready. I can see the git method is underlined in red 'cause it throws an error, so I'll use IntelliJ to add that exception to the main method's signature. Finally since I'm using an executor I need to be sure to shut it down when I'm done using it with the shutdown method. When I run the program I see that it immediately prints the first two messages from the main method and the message from the callable that Olivia is counting vegetables. After the three second wait, the main method finally gets the result from the future and prints the message that Olivia responded with 42.
+
+
+### Divide and conquer
+Divide and conquer is well-suited for parallel execution
+* Divide
+* Conquer: recursive solve
+* Combine
+
+* if "base case" - solve it
+* else 
+    - partition problem into "left" and "right" subproblems
+    - solve "left" recursively
+    - solve "right" recursively
+    - combine "left" and "right" solutions
+
+**Base case**: not necessarily to be the smallest element, any small enough case can be used as base case. This can avoid unnecessary divides.
+
+
+Divide and conquer can be parallel because each of the subproblems are independent
+
+Parallelism may not always be benefitial: Depending on the size of the problem set and the complexity of the operations involved, the cost and overhead involved in making the algorithm parallel may outweigh the potential benefits.
+
+#### Transcript
+One class of algorithms that are well-suited for parallel execution across multiple processors are divide and conquer algorithms. They work by first dividing a large problem into a number of smaller subproblems of roughly equal size. Next, the conquer phase recursively solves each of those subproblems and finally, the solution to the subproblems are combined together to produce the overall solution for the original problem. 
+
+The common structure for divide and conquer code usually consists of an if/else statement. 
+* If the algorithm has reached what's called a base case, meaning the problem has been subdivided into a small enough piece to solve directly, then simply solve it.
+* Otherwise, following the else case
+    - divide the current problem into two smaller pieces, referred to as the left and right problems
+    - Solve both of those problems recursively using the same divide and conquer strategy
+    - then combine the left and right solutions.
+    
+> Consider the task of summing together a large number of elements. I have an array of shopping receipts here, and I need to add them all together to figure out how much we spent buying all those vegetables. If I were doing that alone as a sequential process, I would simply iterate through the receipts in the array and accumulate their values. Five plus 13 is 18, plus seven is 25, plus three is 28-- - That's going to take forever. Let's divide and conquer this task. You add this half of receipts, and I'll add this half. We've subdivided this task into two subtasks that each of our threads can execute. - Do you want to subdivide it into even smaller parts? - Sure. 
+
+We can continue to recursively divide the receipts into smaller and smaller subgroups until we eventually reach our base case. For some algorithms, the base case may require you to continue recursively subdividing until you reach individual elements. But for our purpose, we can define our base case to stop when we reach a threshold amount of receipts. 
+
+> At that point, we'll add each of those subgroups of receipts together, then reverse or unwind the recursion to combine the results from all of the subproblems to get our final answer. - My half of the receipts add up to 41. - And mine add up to 62. So we spent a total of $103 on groceries. 
+
+Divide and conquer algorithms lend themselves to being made to parallel because each of the subproblems are independent. So they can be executed in parallel on different processors. - Now just because a divide and conquer algorithm can be made parallel, doesn't mean it's always advantageous to do so. Depending on the size of the problem set and the complexity of the operations involved, the cost and overhead involved in making the algorithm parallel may outweigh the potential benefits.
+### Divide and conquer: Java demo
+Java Fork/Join framework: framework for executing recursive, divide and conquer work with multiple processors
+
+
+ForkJoinPool
+* 
+
+
+
+03_07
+# TODO: 03_07 code
+
+```
+import java.util.concurrent.*;
+
+class HowManyVege implements Callable {
+    public Integer call() throws Exception {
+        ...
+        return n;
+    }
+}
+...
+    ExecutorService pool = Executors.newSingleThreadExecutor();
+    Future result = pool.submit(new HowManyVege());
+    // Main thread continue to run while the result getting returned
+    Integer n = result.get();//This will block if value is not available.
+    pool.shutdown();
+...
+```
+#### Transcript
+
+To demonstrate how to implement a parallel divide and conquer algorithm, I'll be using **Java's Fork/Join Framework**, which is designed to use multiple processors to execute work that can be recursively broken down into smaller pieces. 
+
+At the heart of the framework is an executor service called the **ForkJoinPool**, which distributes tasks to its worker threads.
+* It executes ForkJoinTasks, which include methods named `Fork` and `Join`.
+    - We use the fork method when recursively breaking down a problem, to asynchronously execute tasks with the ForkJoinPool
+    - and then, during the combine stage, we use the join method, which returns the result of the task when it's done. 
+
+ForkJoinTasks are typically created using one of two specialized classes
+* either the `RecursiveTask<V>` class, which can return a result
+* or the `RecursiveAction` class, which does not.
+
+To demonstrate how to write a parallel divide and conquer algorithm using recursion, and the Fork/Join framework, I'll create an example program that sums together all of the integers between two numbers, a low and a high value. 
+
+Starting with this shell of a basic Java program, 
+1. I'll first import the java.util.concurrent package.
+2. Next, I'll create a class named RecursiveSum that extends the RecursiveTask class and I'll specify that it will return a long value.
+    - Since I extended the RecursiveTask class, I'll need to give my RecursiveSum class a compute method, which will return a long value.
+    - I'll also give this class two private values, low and high, which will represent the beginning and end of the range of numbers this program will sum together.
+    - And, I'll create a simple constructor method to pass in those two values when creating a new instance of RecursiveSum.
+    - Now, to begin filling in the compute method, I'll follow the basic structure for a Recursive divide and conquer program, by first using an IF statement to check for the base case condition.
+        + If the difference between the high and low values is less than my chosen threshold of 100,000, then I've reached the base case, and I'll use a simple for loop to sequentially sum together all of the values within that range and return the total result.
+        + That completes the base case, so now I'll move on to the ELSE case, to subdivide the array even more.
+            1. First, I'll do a little math to calculate the midpoint between the high and low indices.
+            2. Next, I'll use the RecursiveSum class's constructor to instantiate a new subtask, which I'll call left, and have it sum the numbers from the low to middle.
+            3. Then, I'll instantiate a second RecursiveSum called right, to add up the other half of the numbers from middle to high.
+            4. Now that I've divided the current task into two new subtasks, it's time to run them. I'll use the Fork method on the task for the left side, and this adds it to the ForkJoinPool to be executed by one of the pool's available threads.
+            5. Finally, I'll use a single line of code to **combine** and return the results from both halves. *Rather than adding the right task to the ForkJoinPool as well, I'll call its compute method here to execute it in the current thread and get its result value, and to get the result from the left task, which was being handled by the pool, I'll use the Join method, which will give its result when it finishes.* Adding those two result values from the two halves together, gives me the return value, and that completes the compute method.
+3. Now, dropping down to this program's main method
+    - I'll create a new `ForkJoinPool` using the `commonPool` method. This **creates a static pool of worker threads**, and it's a **good choice for most applications**.
+    - On the next line, I'll call pool.invoke and pass it a new RecursiveSum task to sum the numbers from zero to one billion. The invoke method will perform its given task and then return the result upon completion. So I'll catch that result with a variable called total.
+    - Don't forget to shut down the pool when you're done.
+    - And finally, I'll print out that total result value.
+
+That completes the program, so I'll build and run it, and when I do, it recursively divides and conquer the task of summing together all those numbers, and I get a message that they add up to, well, as you can see here, a really, really big number.
 ## 4. Evaluating Parallel Performance
 
-## 5. Challenge Problems
+### Speedup, latency, and throughput
 
+#### Reasons for parallelism
+* more work in same amount of time - weak scaling:
+    - Variable number of processors with fixed problem size per processor
+    - Accomplish more work in the same time 
+* use more processors to accomplish task faster - strong scaling
+    - variable number of processors with fixed total problem size
+    - it involves breaking down and spreading a problem across multiple processors
+    - accomplish same work in less time
+
+Both cases parallelism increases throughput
+
+> For example, we're going to a party, and I promised to bring 10 cupcakes. Working by myself, I can decorate 10 cupcakes in one hour. They are very fancy cupcakes. But if Baron joins me as a second processor, doing the same type of work in parallel, together we can decorate 20 cupcakes in one hour. 
+
+
+> If Olivia promised to bring 10 cupcakes to the party, then working alone, it would take her one hour to decorate all of them, but if we split the workload, so she'll do half and I'll do half, then working together in parallel, we can decorate those 10 cupcakes in only about 30 minutes. 
+
+#### 3 metrics
+* `throughput = #task/time` action per unit of time. 
+* `Latency = time/task` time per task
+* `speedup = (optimal sequential execution time)/(parallel execution time with N workers)` to measure the effectiveness of a parallel program
+
+
+
+> Latency is measured in units of time, so if it takes six minutes to decorate one cupcake, that's a latency of six minutes. Throughput is expressed in actions per unit of time, so the throughput of one processor, that is Olivia working alone, is 10 cupcakes per hour. Two processors working in parallel will have the same latency of six minutes to decorate each cupcake, but their combined throughput increases to 20 cupcakes per hour, and with three processors, the throughput goes even higher to 30 cupcakes per hour. - 
+
+
+> So if one worker takes an hour or 60 minutes to make 10 cupcakes, but two workers can do the same job in only 30 minutes, that corresponds to a speedup of two. If adding a third worker drops the time to 20 minutes, that's a speedup of three.
+#### Caveat
+**It's more common to have programs where some parts can be parallelized but other parts can't.**
+
+> Let's say at the end of our cupcake decorating program, we need to pack the finished cupcakes into this container. If only one of our threads can interact with the shared container at a time, we'll have to take turns using it, so that part of our program will have to execute sequentially, and that creates a limit on the amount of speedup we can possibly achieve. of speedup we can possibly achieve.
+### Amdahl's law
+There's a well-known equation for estimating the speedup that a parallel program can achieve called Amdahl's law, which is named after the computer scientist that formulated it. 
+
+It's a way to estimate how much bang for your buck you'll actually get by parallelizing a program. In this equation for Amdahl's law, 
+* P represents the portion of a program that can be made parallel
+* S is the speedup for that parallelized portion
+Overall Speedup = 1/((1-P)+P/S)
+![Amdahl's law.png]()
+
+
+
+> So, for this example, if 95% of our cupcake decorating program can be executed in parallel, and doing so with two processors produces a speedup of two for that part of the program, then the theoretical speedup for the entire program is about 1.9, which is a little bit less than two. 
+
+> If we add a third processor to increase the speedup for the parallelized portion to three, then the overall speedup will be around 2.7. Using four processors gives us a speedup of 3.5, and so on. 
+
+> Now let's say we spend a lot of money and buy a computer with 1000 processing cores. Instinctively I would expect that to give me a speedup of somewhere at least close to 1000. That'd be great. But according to Amdahl's law, the overall speedup with 1000 processors will only be around 19.6. If I go wild and bump it up to a million processors, the overall speedup only increases to slightly less than 20.
+
+The sequential portion of the program determines the upper limit on the speedup we can achieve
+
+> 95% of our program is parallelizable, but the 5% that's not, the part of the program that has to execute sequentially, that's creating an upper limit on the speedup we can achieve. A million processors might be able to execute the parallel portion of the program in the blink of an eye, but that sequential 5% will still take the same amount of time as it would with just one processor. 
+
+![Speedup-Parallelism-processors.png]()
+This chart shows the estimated speedup that can be achieved when 95% of a program can be parallelized. As the number of processors is increased from left to right, the speedup rises until it eventually maxes out at 20. If only 90% of a program can be parallelized, then at best we'll get a speedup of 10. A 75% parallelizable program has a maximum speedup of four, and if only 50% of a program can be executed in parallel, then even with an infinite number of processors, the best we can achieve is a measly speedup of two. If that's all we can get, then we might decide that it's not worth the effort to write the program so it will run in parallel. 
+
+
+Amdahl's law illustrates why using multiple processors for parallel computing is only really useful for programs that are highly parallelizable.
+#### parallel isn't always best, benefitial or even necessary
+When first learning about parallel programing, it's natural to be excited and want to parallelize everything. Computers have lots of cores nowadays, so why not make everything as parallel as possible? That's a common trap to fall into. Just because you can write programs to be parallel doesn't mean you always should, because the costs in overhead associated with parallelization can sometimes outweigh the benefits. Amdahl's law is one handy tool to estimate the benefits of parallelizing a program to determine whether or not it makes sense to do so.
+
+
+### Measure speedup
+Measure speedup empirically
+
+`Speedup = (sequential execution time)/(parallel execution time)`
+* Measuring sequential execution time: measure the best possible implementation of that algorithm written with sequential execution in mind
+    - instead of running parallel version of the program on one processor, b/c, parallel has overhead
+* Measuring parallel execution time
+
+Measure efficiency: indicates how well system resources, like additional processors, are utilized. A rough calculation `efficiency = speedup/number of processors`
+
+**Measuring speedup and efficiency gives us a sense of how well our parallel program is actually performing**
+* speedup > 1: somewhat beneficial
+* speedup < 1: not helpful at all
+
+#### Recomendation for benchmarking
+* **limit competition for resource**
+* **repeat and average**
+* **warm up the environment**
+
+#### Transcript
+Amdahl's Law is great for estimating the speedup that you might achieve by parellelizing a program, but once you've created that parallel program, it can be useful to actually measure its speedup empirically. 
+
+Speedup is calculated as the ratio of two values: the time it takes for the program to execute sequentially divided by the time it takes to execute in its parallel implementation. That means we'll actually need to take two separate measurements to calculate speedup. 
+* First, we'll see how long the algorithm takes to execute with a single processor. Now, this doesn't mean just take the parallel version of the program and run it with only one processor, because the parallel program will include additional overhead that isn't necessary to run sequentially. We want to measure the best possible implementation of that algorithm written with sequential execution in mind. 
+
+> I've got my stopwatch ready. Let's see how fast you can add up these receipts by yourself. - Well, the fastest way to do that work, working alone, is to simply iterate through the stack of receipts and accumulate their totals. - Ready, set, go. - Done! $103. - 25 seconds. - Great, that's our sequential baseline.
+
+> Now, let's try that again working together using a divide and conquer approach that's structured for parallel execution. - Okay; ready, set, go. - Done. $103. - 17 seconds this time around.
+
+> Cool. We can calculate speedup now. 25 seconds divided by 17 seconds gives us a speedup of 1.47. Working together in parallel made us almost one and 1/2 times faster. - Not too shabby considering there are only two of us, but if this had been a result with many more processors to help with the work, then the speedup of only 1.47 doesn't sound that impressive. - True. 
+
+
+Speedup is a great metric, but it doesn't paint the whole picture. Another metric to consider is efficiency, which indicates how well system resources, like additional processors, are utilized. We can get a rough calculation for efficiency by dividing the speedup by the number of processors.
+
+> With just two processors, Olivia and me, we achieved a speedup of 1.47, which means we were 73.5% efficient, and I think that's pretty good. Now, let's say we increase the number of processors in our system to eight, but doing so only produces a speedup of 2.2. Now, we're only running at 27.5% efficiency. Our program did not scale well to utilize those additional processors. 
+
+**Measuring speedup and efficiency gives us a sense of how well our parallel program is actually performing**. 
+* As long as you achieve a speedup that's greater than one, you know you've achieved at least something by making the program parallel.
+* But, if your speedup is less than one, you're better off just running the sequential algorithm.
+
+Now, a few recommended things to consider when benchmarking a program's performance.
+* It's important to limit the number of programs running at the same time so they don't compete with the program you're trying to measure for resources like processor time.
+* since execution scheduling and other background tasks like garbage collection can change how long a program takes from run to run, I like to measure the execution time for multiple, independent runs of the program and then average those times together.
+* Finally, some programming environments use just-in-time compilation to compile parts of the program at run time. That can cause the program to execute slower when it first starts up, so you want to let the environment warm up before you begin taking measurements.
+
+Some programming languages may have compiler options or runtime settings that can address those concerns, but as a very simple warmup, I always like to run the algorithm I'm going to be measuring once before I actually run and measure it to make sure things like the cache are in a somewhat consistent state from run to run.
+### Measure speedup: Java demo
+04_04
+
+This example provides a basic but useful framework for evaluating parallel programs and help with making adjustments.
+
+#### Transcript
+To demonstrate how I measure the speedup of a parallel program in Java, I'll be using recursive sum algorithm that I created in an earlier video. It uses a divide-and-conquer approach to sum together all of the numbers within a range of values. The parallel implementation of that algorithm is contained within the recursive sum class on line eight, but since I already covered how it works, I'll use code folding to hide it for now. Down in the measure speedup demo class, I've written a method called sequential sum on line 38 which uses a for loop to implement a sequential version of that summing routine. I'll use it to measure the sequential execution time to provide a baseline for comparison, but, for now, I'll hide its inner workings as well. 
+
+Now, the main method of this program contains a simple framework that I like to use to evaluate the performance of my parallel algorithms. 
+
+##### code for Measure sequential
+* repeat and average: On line 46, I have a variable to indicate the number of evaluation runs to measure each implementation's execution time and then I'll average those times together. For this demo, I'll measure each algorithm 10 times and I'll be summing together the numbers from zero up to the sum value on line 47, which is one billion. Lines 49-57 contain the code to measure the sequential execution time. 
+* warm up: Before I begin timing anything, I run the sequential sum method once on line 50 to capture its output and doing so also serves as a rudimentary way to warm up the system. If the algorithm requires any just-in-time compilation or perhaps leaves the cache in a certain state, that will all be done when I start timing the algorithm on the following lines. 
+* On line 51, I create a variable to accumulate all of the sequential run times and then I use a for loop to execute the sequential sum method for the number of evaluation runs. 
+* At the beginning of each run, I capture the current system time on line 53 with the variable start, then I execute the sequential algorithm and when it's done, I calculate the elapsed time and add it to the accumulator.
+* Finally, after all of those evaluation runs, I divide the accumulated sequential time by the number of runs on line 57 to get the average. 
+
+##### code for measure Parallel
+The next block of code on lines 59-71 accomplishes the same thing, but for the parallel algorithm instead. It captures its output result first on line 61 and then measures its execution time multiple times in the for loop on line 64. 
+* Since the parallel recursive sum uses the fork/join framework, I've included the time it takes to create and shutdown the fork/join pool on lines 66 and 68 as part of the measured parallel execution time. 
+
+#### code for display and compare results
+After those parallel evaluation runs are complete, this final block of code displays the results.
+* The if statement on line 74 checks to make sure that the sequential and parallel algorithms produce the same result. If they didn't, then something's wrong and it throws an exception.
+* Otherwise, the last four print statements display the average sequential and parallel execution times, along with the corresponding speedup and efficiency, based on the number of processors in the system.
+
+#### run program
+Now, when I run this program, I see a message that it's beginning the sequential test. Then after a little bit, the parallel test, and then the results pop up. The sequential algorithm took an average of 646 milliseconds, but the parallel time was only 62 milliseconds. 
+* That corresponds to a speedup of 10.3 
+* an efficiency of about 42.9% calculated based on the 24 logical processors in this computer
+With those results in hand, I can try making adjustments and tweak my parallel algorithm and then run the benchmark again to see if that increases or decreases its performance. 
+
+#### compare and improve 
+For example, I could try changing the base case threshold for my parallel algorithm on line 20 from 100,000 to just 100. If I run the program again, I see that making that change decreased my performance or at least I know it does when I'm summing over the range of numbers from zero to one billion. 
+
+Now, this framework provides an easy way to evaluate the relative performance of a parallel program, but it's not perfect. For example, even though I'm averaging together the results of 10 runs from the sequential and parallel algorithms, if I run this program again, I'll get a slightly different result for speedup. If I increase the number of evaluation runs from 10 to, say, 100, then I should see less variability from run to run because I'm averaging together more tests. But, I need to weigh that against the amount of time it takes to do that. Increasing the number of runs to a million would be awesome, but that would take a really, really long time and probably require multiple cups of coffee while I wait. 
+
+
+Think of this framework as a tool you can play around with and use to investigate your parallel algorithms to, hopefully, make them better.
+## 5.Designing Parallel Programs
+How do you actually design a parallel program? A common four-step methodology for designing complex programs on large-scale parallel systems
+* Partitioning
+* Communication
+* Agglomeration
+* Mapping
+### Partitioning
+Break the problem down into discrete pieces of work
+
+Two ways to partition
+* Domain/Data decomposition: different ways of decomposing data have different advantages and disadvantages** depending on the problem and hardware involved
+    - block decomposition
+    - cyclic decomposition(take turns every N data point)
+* Functional decomposition
+
+
+
+#### Transcript
+We've looked at a lot of mechanisms for implementing concurrent and parallel programs and considered the concepts and challenges associated with them. Now it's time for the big question. How do you actually design a parallel program? Over the next few videos, we'll look at a common four-step methodology for taking a problem and developing a parallel solution for it. This methodology can be used to design complex programs that run on large-scale parallel systems, and not all parts of it are applicable to writing simple desktop applications like we've done in this course, but the concepts are still good to understand. 
+
+The four stages can be summarized as partitioning, communication, agglomeration, and mapping. 
+
+That first stage, partitioning, is about breaking down the problem into discrete chunks of work that can be distributed to multiple tasks. At this beginning stage, we are not concerned with practical issues like the number of processors in our computer. We'll consider the later. For now, our goal is to simply decompose the problem at hand into as many small tasks as possible and there are two basic ways to approach partitioning.
+* Domain decomposition
+* Functional decomposition
+
+Domain or data decomposition focuses on dividing the data associated with the problem into lots of small and if possible, equally sized partitions. 
+
+The secondly focus is then to consider the computations to be performed and associating them with that partition data. 
+
+For example, if Olivia and I need to decorate this tray of cupcakes, that's a two-dimensional array of data elements we need to process. So we can use domain decomposition to split that work into two similar tasks. We could break the array into two blocks. I'll handle decorating this half, and you take the other block. - Or we could break up elements cyclically and each decorate every other cupcake. - [Male Instructor] Sure, that's just another way to break up this data and **different ways of decomposing data can have different advantages and disadvantages** depending on the problem and hardware involved. 
+
+Once we've partitioned the data, we can turn our focus towards the processing that needs to be applied to each section.
+
+The other form of decomposition, functional decomposition, provides a different, complementary way to break down the problem. Rather than focusing on the data being manipulated, functional decomposition begins by considering all of the computational work that a program needs to do, and then divides that into separate tasks that perform different portions of the overall work. **The data requirements for those tasks are a secondary consideration.**
+
+For example, to functionally decompose making cupcakes, we would first break up all of the individual tasks that go into making them. Then, from there, we continue on to consider the data involved with each of those tasks.
+
+
+Keep in mind that domain and functional decomposition are complementary ways to approach a problem, and it's natural to use a combination of the two. Programmers typically start with domain decomposition, because it forms the foundation for a lot of parallel algorithms, but sometimes taking a functional approach instead can provide different ways of thinking about these problems. **It's worth taking the time to explore alternative perspectives.** They can reveal problems or opportunities for better optimization that would be missed by considering data alone.
+### 
+### 
+### 
+## 6. Challenge Problems
+
+### 
+### 
+### 
+### 
+### 
+### 
+### 
+### 
+### 
 ## Conclusion
+### 
+### 
+### 
+### 
+### 
+### 
+### 
+### 
+### 
 
 
 
