@@ -1498,7 +1498,7 @@ Two ways to partition
     - cyclic decomposition(take turns every N data point)
 * Functional decomposition
 
-
+Domain and functional decomposition are complementary, are often used in combination. Programmers typically start with domain decomposition, because it forms the foundation for a lot of parallel algorithms, but sometimes taking a functional approach instead can provide different ways of thinking about these problems. **It's worth taking the time to explore alternative perspectives.** They can reveal problems or opportunities for better optimization that would be missed by considering data alone.
 
 #### Transcript
 We've looked at a lot of mechanisms for implementing concurrent and parallel programs and considered the concepts and challenges associated with them. Now it's time for the big question. How do you actually design a parallel program? Over the next few videos, we'll look at a common four-step methodology for taking a problem and developing a parallel solution for it. This methodology can be used to design complex programs that run on large-scale parallel systems, and not all parts of it are applicable to writing simple desktop applications like we've done in this course, but the concepts are still good to understand. 
@@ -1523,9 +1523,122 @@ For example, to functionally decompose making cupcakes, we would first break up 
 
 
 Keep in mind that domain and functional decomposition are complementary ways to approach a problem, and it's natural to use a combination of the two. Programmers typically start with domain decomposition, because it forms the foundation for a lot of parallel algorithms, but sometimes taking a functional approach instead can provide different ways of thinking about these problems. **It's worth taking the time to explore alternative perspectives.** They can reveal problems or opportunities for better optimization that would be missed by considering data alone.
-### 
-### 
-### 
+### Communication
+After decomposing -> communication: coordinate task execution and share information
+
+#### high-level structures 
+high-level structures to serve as a starting point
+* problems decomposed in a way there is no need for communication
+* point to point communication network: sender - receiver
+* if your tasks need to communicate with a larger audience
+    - one task broadcasts the same data out to all members of a group, or collective
+    - one task scatters different pieces of the data out to each of the members to process, and combine their results
+
+With these basic structures, important to consider how it can grow and scale, and improve on it. e.g. a centralized one task manage all worker model to a tree model, using divide and conquer.
+
+#### A few factors to consider
+* How it grow and scale, use methods like divide and conquer
+* whether the communications will be synchronous or asynchronous.
+    * Synchronous blocking communications
+        + tasks wait until the entire communication is completed to continue doing other work
+        + potentially result in tasks spending a lot of time waiting
+    * Asynchronous nonblocking communications
+        + tasks don't wait for communication to complete, can do other work while in progress
+* Communications overhead: compute time/resource spent on communication
+* Latency: time to send a message from point A to B(microseconds)
+* bandwidth: amount of data communicated per unit of time(bytes per second)
+
+These inter-system communication factors can have a significant impact on the overall performance
+#### Transcript 
+After decomposing the problem into separate tasks, the next step in our design process is to establish communication, which involves figuring out how to coordinate execution and share data between the task.
+
+Hang on a sec. Do we always need communication? - Well, my dear, communication is the foundation of a good relationship. - Yeah, yeah, but I was talking about data. 
+
+**Some problems can be decomposed in ways that do not require tasks to share data between them.** Consider the job of frosting these cupcakes. If I'm tasked to add frosting to this one, and you're tasked to add frosting to that one, even though we're operating on adjacent elements in this array, there's no need for us to communicate with each other. They're completely independent tasks. This is embarrassingly easy to make parallel. - Sure, we could spend our quality family time together in the kitchen not talking to each other, 
+
+but what if **there is a need to share data between tasks**? Let's say we want to decorate the cupcakes to have a rainbow pattern across them. That would require each task to know information. I need to know what color you're making your cupcakes, so I can color my cupcakes accordingly. Although our separate tasks can execute concurrently, we're not longer completely independent from each other. 
+
+In this type of situation, we might establish **a network of direct point-to-point communication links between neighboring tasks**. For each link, one task is acting as the sender, or producer of data, and the other task that needs it is the receiver or consumer. That type of local point-to-point communication can work when each task only needs to communicate with a small number of other tasks.
+
+But if your tasks need to communicate with a larger audience, then you should consider other structures for sharing data between multiple tasks. 
+* You might have one task that broadcasts the same data out to all members of a group, or collective
+* or it scatters different pieces of the data out to each of the members to process. Afterwards, that task can gather all of the individual results from the members of the group and combine them for a final output. 
+
+When operations require this type of global communication, it's important to consider how it can grow and scale. Simply establishing point-to-point pairs may not be sufficient. 
+
+> If one task is acting as a centralized manager to coordinate operations with a group of distributed workers, as the number of workers grow, the communication workload of the central manager grows too and may turn it into a bottleneck. This is where strategies like divide and conquer can be useful to distribute the computation and communication in a way that reduces the burden on any one task. 
+
+These are just a few high-level structures to serve as a starting point as you begin to plan the communications for a parallel program. 
+
+A few other factors to consider include 
+* whether the communications will be synchronous or asynchronous.
+    * Synchronous communications are sometimes called blocking communications because all tasks involved have to wait until the entire communication process is completed to continue doing other work. That can potentially result in tasks spending a lot of time waiting on communications instead of doing useful work.
+    * Asynchronous communications, on the other hand, are often referred to as nonblocking communications because, after a task sends an asynchronous message, it can begin doing other work immediately, regardless of when the receiving task actually gets that message. 
+* You should also consider the amount of processing overhead a communications strategy involves, because the computer cycles spent sending and receiving data are cycles not being spent processing it. 
+* Latency is another factor to consider, the time it takes for a message to travel from point A to B expressed in units of time like microseconds
+* bandwidth, which is the amount of data that can be communicated per unit of time, expressed in some unit of bytes per second.
+
+Now, if you're just writing basic multi-threaded or multi-processed programs to run on a desktop computer, some of these factors like latency and bandwidth probably aren't major concerns because everything is running on the same physical system. But as you develop larger programs that distribute their processing across multiple physical systems, those inter-system communication factors can have a significant impact on the overall performance.
+
+
+
+
+
+
+
+
+
+
+
+### Agglomeration
+In decomposition and communication, we abstractly explore and design how the task can be split up, and each task can communicate.
+
+In agglomeration step, we revisit these decisions to consider changes to make our program more efficient. By combining some of those tasks and possibly replicating data or computations. 
+
+Parallel program computation time are separated by communication/synchronization events. a qualitative measure `granularity=computation/communication`
+
+Two types of parallelism in terms of granularity
+* fine-grained parallelism: a large number of small tasks
+    - Advantage: good distribution of workload, aka allows load balancing
+    - Disadvantage: low computation-to-communication ratio
+* coarse-grained parallelism: small number of large tasks
+    - advantage: high computation-to-communication ratio
+    - disadvantage: inefficient load balancing
+
+Most efficient solution will be dependent on the algorithm and the hardware, typically a medium grained for general purpose computers.
+#### keep flexibility in mind
+it's easy to make **shortsighted decisions** like this that can limit a program's scalability. A well designed parallel program should adapt to changes in the number of processors so **keep flexibility in mind**. Try not to incorporate unnecessary hard-coded limits on the number of tasks in a program. If possible use compile time or runtime parameters to control the granularity.
+
+#### Transcript
+
+In the first two stages of our parallel design process. We partitioned the problem into a set of separate tasks, and then established communication to provide those tasks with the data they needed. We looked at different ways to decompose the problem and focused on defining as many small tasks as possible, that approach helped us consider a wide range of opportunities for parallel execution. However, the solution it created is not very efficient, especially if there are way more tasks than there are processors on the target computer. - Now it's time to **turn our thinking from abstract, to something concrete and modify that design to execute more efficiently on a specific computer**.
+
+
+In the third agglomeration stage, we'll revisit the decisions we made during the partitioning and communication stages to consider changes to make our program more efficient. Combining some of those tasks and possibly replicating data or computations. 
+
+As a parallel program executes periods of time spent performing useful computations are usually separated by periods of communication and synchronization events. The concept of **granularity** gives us a qualitative measure of the time spent performing computation, over the time spent on communication. 
+
+Parallelism can be classified into two categories based on the amount of work performed by each task.
+* With fine-grained parallelism a program is broken down into a large number of small tasks. The benefit is that lots of small tasks can be more evenly distributed among processors to maximize their usage. A concept called load balancing. The down side is that having lots of tasks, increases the overhead for communication and synchronization. So it has a lower computation to communication ratio.
+
+* On the other end of the spectrum, coarse-grained parallelism splits the program into a small number of large tasks. 
+    - The advantage is that it has a much lower communication overhead, so more time can be spent on computation, 
+    - however the larger chunks of work may produce a load imbalance where certain tasks process the bulk of data while others remain idle.
+    
+
+Those are two extremes and the most efficient solution will be dependent on the algorithm and the hardware on which it runs. For most general purpose computers that's usually in the middle with some form of medium-grained parallelism.
+
+> When we partitioned our cupcakes earlier, we took a fine-grained approach. The array has 12 elements that need to be frosted, so we decomposed that into 12 separate tasks, one for each cupcake. As we evaluated communication we determined that each cupcake task will need to share data with the four other cupcakes surrounding it to coordinate their colors to form a rainbow pattern, which would require 34 communication events. In addition to that being a lot of communication 12 tasks is way more than the number of processors in our kitchen, there's only two of us!
+
+> Then let's agglomerate and combine some of those tasks. Since we only have two processors, Olivia, and me. We'll restructure the program into two tasks that are each responsible for frosting six of the cupcakes, that reduces the amount of communications between those tasks from 34 down to just two because everything else is handled locally within the task. However now each time they communicate they'll have to share more information to convey the status of the three cupcakes along that edge, now we have two tasks and two processors, perfect.
+
+> Hey guys, I heard you need some help frosting cupcakes. - Aww Steve, we just restructured our program into two tasks and now with Steve we have three processors available, and that's too many cooks. - Too many cooks? - Too many cooks. One of us would be sitting idle while the other two cooks are busy processing, it's easy to make **shortsighted decisions** like this that can limit a program's scalability. Choosing to restructure our program into just two tasks prevented us from taking advantage of Steve's additional processing power. 
+
+A well designed parallel program should adapt to changes in the number of processors so **keep flexibility in mind**. Try not to incorporate unnecessary hard-coded limits on the number of tasks in a program. If possible use compile time or runtime parameters to control the granularity.
+
+### Mapping
+
+## TODO: review everything!!!
 ## 6. Challenge Problems
 
 ### 
