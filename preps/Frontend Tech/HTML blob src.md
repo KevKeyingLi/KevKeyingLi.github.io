@@ -1,1 +1,0 @@
-https://stackoverflow.com/questions/30864573/what-is-a-blob-url-and-why-it-is-used
