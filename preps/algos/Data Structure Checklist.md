@@ -5,6 +5,8 @@
 ### Java ArrayList vs LinkedList
 
 ## Trees
+Types of trees
+
 
 ### Heap, PQ
 * A binary heap: complete binary tree. 
@@ -18,3 +20,6 @@
 * Binomial Heap
 * fibonacci heap
 * ...https://www.geeksforgeeks.org/heap-data-structure/
+
+
+### Trie
