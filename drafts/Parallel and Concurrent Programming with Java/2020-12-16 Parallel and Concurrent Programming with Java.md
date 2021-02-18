@@ -3,8 +3,9 @@
 ## 1 Parallel Computing Hardware
 ### Sequential vs. parallel computing
 Sequential
-* simple straight forward
+* simple, straight forward
 * not taking advantage of the parallel hardware
+
 Parrallel
 * Higher throughput: 
     - same task faster
@@ -12,8 +13,7 @@ Parrallel
 * need extra effort for coordination
 
 ### Parallel computing architectures
-
-One of the most widely used systems for classifying multiprocessor architectures is Flynn's taxonomy,
+One of the most widely used systems for classifying multiprocessor architectures is Flynn's taxonomy
 
 #### Flynn's taxonomy
 <!-- ![Flynn's taxonomy](./images/Flynn.png) -->
@@ -23,18 +23,34 @@ Flynn's taxonomy distinguishes four classes of computer architecture based on tw
 * the number of concurrent instruction or control streams
 * the number of data streams
 
-The class names are usually written as four letter acronyms that indicate whether they have single or multiple instruction streams and data streams
+
 * SIMD stands for Single Instruction, Multiple Data.
-* The simplest of these four classes is the **Single Instruction, Single Data** or **SISD** architecture, which is __a sequential computer with a single processor unit__.
-* The next class in Flynn's taxonomy is **Single Instruction, Multiple Data**, or **SIMD**, which is a type of parallel computer with multiple processing units. All of its processors execute the same instruction at any given time, but they can each operate on different data element. *As an SIMD computer, our two processors are both executing the same chopping instruction, but I'm chopping celery as my data while Baron chops a carrot. - And we'll execute those instructions in sync with each other. (chopping)* **This type of SIMD architecture is well-suited for applications that perform the same handful of operations on a massive set of data elements** like image processing. And most modern computers use graphic processing units or **GPUs** with SIMD instructions to do just that.
-* **Multiple Instruction, Single Data** or **MISD** architecture, each processing unit independently executes its own separate series of instructions. However, all of those processors are operating on the same single stream of data. **MISD doesn't make much practical sense, so it's not a commonly used architecture.**
+* **Single Instruction, Single Data** or **SISD** architecture: __a sequential computer with a single processor unit__. The simplest of these four classes
+* **Single Instruction, Multiple Data**, or **SIMD**, which is a type of parallel computer with multiple processing units. All of its processors execute the same instruction at any given time, but they can each operate on different data element.
+    - **SIMD architecture is well-suited for applications that perform the same handful of operations on a massive set of data elements** like image processing. And most modern computers use graphic processing units or **GPUs** with SIMD instructions to do just that.
+    - e.g. *As an SIMD computer, our two processors are both executing the same chopping instruction, but I'm chopping celery as my data while Baron chops a carrot. - And we'll execute those instructions in sync with each other. (chopping)*
+* **Multiple Instruction, Single Data** or **MISD**(not very useful), each processing unit independently executes its own separate series of instructions. However, all of those processors are operating on the same single stream of data. **MISD doesn't make much practical sense, so it's not a commonly used architecture.**
 * **Multiple Instruction, Multiple Data** or MIMD computer, every processing unit can be executing a different series of instructions, and at the same time, each of those processors can be operating on a different set of data. **MIMD is the most commonly used architecture in Flynn's taxonomy, and you'll find it in everything from multicore PCs to network clusters and supercomputers.** Now, that broad MIMD category is sometimes further subdivided into two parallel programming models, which also have four letter names. 
     - **Single Program, Multiple Data**, or SPMD
     - **Multiple Program, Multiple Data**, MPMD.
 
-In the SPMD model, multiple processing units are executing a copy of the same single program simultaneously. However, they can each use different data. That might sound a lot like the SIMD architecture from earlier, but it's different because although each processor is executing the same program, they do not have to be executing the same instruction at the same time. The processors can run asynchronously and the program usually includes conditional logic that allows different tasks within the program to only execute specific parts of the overall program. If Olevia and I are both following the same recipe or program, I can execute part of it, while Olevia's processor handles a different task. **This SPMD model is the most common style of parallel programming** and when we show you programming examples later in this course, we'll structure the code as a single program and execute it on a multicore desktop computer, which is an MIMD architecture.
+#### SPMD and MPMD
+Instead of differentiating at instruction level, SPMD and MPMD differ at the program level
 
-Multiple Data or MPMD model. In this scenario, processors can be executing different, independent programs at the same time while of course also be operating on different data. Typically in this model, one processing node will be selected as the host or manager, which runs one program that farms out data to the other nodes running a second program. Those other nodes do their work and return their results to the manager. MPMD is not as common as SPMD, but it can be useful for some applications that lend themselves to functional decomposition, which we'll cover later on.
+<img src="images/SPMD.png" width="480">
+In the SPMD model, multiple processing units are executing a copy of the same single program simultaneously. However, they can each use different data. That might sound a lot like the SIMD architecture from earlier, but it's different because although each processor is executing the same program, they do not have to be executing the same instruction at the same time. The processors can run asynchronously and the program usually includes conditional logic that allows different tasks within the program to only execute specific parts of the overall program. 
+> If Olivia and I are both following the same recipe or program, I can execute part of it, while Olivia's processor handles a different task. 
+
+**This SPMD model is the most common style of parallel programming** and when we show you programming examples later in this course, we'll structure the code as a single program and execute it on a multicore desktop computer, which is an MIMD architecture.
+
+<img src="images/MPMD.png" width="480">
+Multiple Data or MPMD model. In this scenario, processors can be executing different, independent programs at the same time while of course also be operating on different data. 
+
+Typically in this model, a **divide and conquer** approach is applied.
+* one processing node will be selected as the host or manager, which runs one program that farms out data to the other nodes running a second program.
+* Those other nodes do their work and return their results to the manager. 
+
+MPMD is not as common as SPMD, but it can be useful for some applications that lend themselves to functional decomposition, which we'll cover later on.
 
 
 ### Shared vs. distributed memory
@@ -42,9 +58,9 @@ In addition to a parallel computer's architecture which can be categorized using
 * how the memory is organized
 * how the computer accesses data
 
-* Computer memory usually operates at a much slower speed than processors do 
-* when one processor is reading or writing to memory, that often prevents any other processors from accessing that same memory element
-
+Constraints when working with memory
+* Speed: memory usually much slower than processors 
+* Mutex: when one processor is reading or writing to memory, that often prevents any other processors from accessing that same memory element
 
 There are two main memory architectures that exist for parallel computing, **shared memory** and **distributed memory**. 
 
@@ -53,35 +69,42 @@ In a shared memory system, all processors have access to the same memory as part
 
 the term shared memory doesn't necessarily mean all of this data exists on the same physical device. It could be spread across a cluster of systems. The key is that both of our processors see everything that happens in the shared memory space. 
 
-Shared memory is often classified into one of two categories
-* uniform memory access
-* nonuniform memory access, 
-which are based on how the processors are connected to memory and how quickly they can access it. 
+Based on how the processors are connected to memory and how quickly they can access it, shared memory is often classified into one of two categories
+* **uniform memory access**
+* **nonuniform memory access**
+
 ##### UMA
-In a uniform memory access or **UMA** system, all of the processors have equal access to the memory, meaning they can access it equally fast. There are several types of UMA architectures, but the most common is a **symmetric multiprocessing system** or **SMP**. An SMP system has two or more identical processors which are connected to a single shared memory often through a system bus. In the case of modern multicore processors, which you find in everything from desktop computers to cell phones, each of the processing cores are treated as a separate processor. *For this course, we'll be focused on parallel programming within the SMP architecture.* And the example code we show you will be running on a multicore desktop computer. 
+
+<img src="images/UMA.png" width="480">
+
+In a uniform memory access or **UMA** system, all of the processors have equal access to the memory, meaning they can access it equally fast. 
+
+There are several types of UMA architectures, but the most common is a **symmetric multiprocessing system** or **SMP**. An SMP system has two or more identical processors which are connected to a single shared memory often through a system bus. In the case of modern multicore processors, which you find in everything from desktop computers to cell phones, each of the processing cores are treated as a separate processor. *For this course, we'll be focused on parallel programming within the SMP architecture.* And the example code we show you will be running on a multicore desktop computer. 
 
 Now, in most modern processors, each core has its own **cache**, which is a small, very fast piece of memory that only it can see, and it uses it to store data that it's frequently working with. However, caches introduce the challenge that if one processor copies a value from the shared main memory, and then makes a change to it in its local cache, then that change needs to be updated back in the shared memory before another processor reads the old value, which is no longer current. This issue, called **cache coherency**, is handled by the hardware in multicore processors, so **we will not go into detail on it for this course**, but it's something you should be aware of if you find yourself working with larger, more complex parallel computing systems.
-##### NUMA
-The other type of shared memory is a nonuniform memory access or NUMA system, which is **often made by physically connecting multiple SMP systems together**. The access is **nonuniform** because some processors will have quicker access to certain parts of memory than others. It takes longer to access things over the bus. But overall, every processor can still see everything in memory. 
 
+##### NUMA
+
+<img src="images/NUMA.png" width="480">
+
+The other type of shared memory is a nonuniform memory access or **NUMA** system, which is **often made by physically connecting multiple SMP systems together**. The access is **nonuniform** because some processors will have quicker access to certain parts of memory than others. It takes longer to access things over the bus. But overall, every processor can still see everything in memory. 
 
 ##### Summary of shared memory
 * advantage: easier for programming in regards to memory, because it's easier to share data between different parts of a parallel program. 
 * The downside is that they don't always scale well. Adding more processors to a shared memory system will increase traffic on the shared memory bus, and if you factor in maintaining cache coherency, it becomes a lot of communication that needs to happen between all the parts.
 * In addition to that, shared memory puts responsibility on the programmer to synchronize memory accesses to ensure correct behavior, but we'll look into that later.
 
-#### distributed
+#### Distributed
 In a distributed memory system, **each processor has its own local memory with its own address space**, so the concept of a global address space doesn't exist. All the processors are connected through some sort of network, which can be as simple as Ethernet. Each processor operates independently, and if it makes changes to its local memory, that change is **not automatically** reflected in the memory of other processors. 
 
-Disadvantage: change not automatically reflected on other nodes, and the programmer to explicitly define how and when data is communicated between the nodes
+* Disadvantage: change not automatically reflected on other nodes, and the programmer to explicitly define how and when data is communicated between the nodes
+* advantage: it's **scalable**. When you add more processors to the system, you get more memory too.
 
-The advantage of a distributed memory architecture is that it's **scalable**. When you add more processors to the system, you get more memory too. 
+This structure makes it cost-effective to use commodity, off-the-shelf computers, and networking equipment to build large distributed memory systems. Most supercomputers use some form of distributed memory architecture or a hybrid of distributed and shared memory.
 
-This structure makes it cost-effective to use commodity, off-the-shelf computers, and networking equipment to build large distributed memory systems. Most supercomputers use some form of distributed memory architecture or a hybrid of distributed and shared memory. - But for this course, we'll stick with simple shared memory in an SMP architecture.
+But for this course, we'll stick with simple shared memory in an SMP architecture.
 
-
-
-## Threads and processes
+## Threads and processes (To review)
 ### Thread vs. process
 When a computer runs an application, that instance of the program executing is referred to as a process. 
 
