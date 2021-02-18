@@ -17,7 +17,7 @@ One of the most widely used systems for classifying multiprocessor architectures
 
 #### Flynn's taxonomy
 <!-- ![Flynn's taxonomy](./images/Flynn.png) -->
-<img src="images/Flynn.png" width="480">
+<img src="images/Flynn.png" width="960">
 
 Flynn's taxonomy distinguishes four classes of computer architecture based on two factors
 * the number of concurrent instruction or control streams
@@ -37,13 +37,13 @@ Flynn's taxonomy distinguishes four classes of computer architecture based on tw
 #### SPMD and MPMD
 Instead of differentiating at instruction level, SPMD and MPMD differ at the program level
 
-<img src="images/SPMD.png" width="480">
+<img src="images/SPMD.png" width="960">
 In the SPMD model, multiple processing units are executing a copy of the same single program simultaneously. However, they can each use different data. That might sound a lot like the SIMD architecture from earlier, but it's different because although each processor is executing the same program, they do not have to be executing the same instruction at the same time. The processors can run asynchronously and the program usually includes conditional logic that allows different tasks within the program to only execute specific parts of the overall program. 
 > If Olivia and I are both following the same recipe or program, I can execute part of it, while Olivia's processor handles a different task. 
 
 **This SPMD model is the most common style of parallel programming** and when we show you programming examples later in this course, we'll structure the code as a single program and execute it on a multicore desktop computer, which is an MIMD architecture.
 
-<img src="images/MPMD.png" width="480">
+<img src="images/MPMD.png" width="960">
 Multiple Data or MPMD model. In this scenario, processors can be executing different, independent programs at the same time while of course also be operating on different data. 
 
 Typically in this model, a **divide and conquer** approach is applied.
@@ -75,7 +75,7 @@ Based on how the processors are connected to memory and how quickly they can acc
 
 ##### UMA
 
-<img src="images/UMA.png" width="480">
+<img src="images/UMA.png" width="960">
 
 In a uniform memory access or **UMA** system, all of the processors have equal access to the memory, meaning they can access it equally fast. 
 
@@ -85,7 +85,7 @@ Now, in most modern processors, each core has its own **cache**, which is a smal
 
 ##### NUMA
 
-<img src="images/NUMA.png" width="480">
+<img src="images/NUMA.png" width="960">
 
 The other type of shared memory is a nonuniform memory access or **NUMA** system, which is **often made by physically connecting multiple SMP systems together**. The access is **nonuniform** because some processors will have quicker access to certain parts of memory than others. It takes longer to access things over the bus. But overall, every processor can still see everything in memory. 
 
