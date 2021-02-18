@@ -16,7 +16,8 @@ Parrallel
 One of the most widely used systems for classifying multiprocessor architectures is Flynn's taxonomy,
 
 #### Flynn's taxonomy
-![Flynn's taxonomy](./images/Flynn's Taxonomy.png)
+![Flynn's taxonomy](./images/Flynn's\ Taxonomy.png)
+![Flynn's taxonomy](images/Flynn's\ Taxonomy.png)
 Flynn's taxonomy distinguishes four classes of computer architecture based on two factors
 * the number of concurrent instruction or control streams
 * the number of data streams
