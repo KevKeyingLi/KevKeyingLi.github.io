@@ -1595,6 +1595,7 @@ In decomposition and communication, we abstractly explore and design how the tas
 
 In agglomeration step, we revisit these decisions to consider changes to make our program more efficient. By combining some of those tasks and possibly replicating data or computations. 
 
+#### Granularity
 Parallel program computation time are separated by communication/synchronization events. a qualitative measure `granularity=computation/communication`
 
 Two types of parallelism in terms of granularity
@@ -1607,7 +1608,9 @@ Two types of parallelism in terms of granularity
 
 Most efficient solution will be dependent on the algorithm and the hardware, typically a medium grained for general purpose computers.
 #### keep flexibility in mind
-it's easy to make **shortsighted decisions** like this that can limit a program's scalability. A well designed parallel program should adapt to changes in the number of processors so **keep flexibility in mind**. Try not to incorporate unnecessary hard-coded limits on the number of tasks in a program. If possible use compile time or runtime parameters to control the granularity.
+it's easy to make **shortsighted decisions**, that can limit a program's scalability. A well designed parallel program should adapt to changes in the number of processors so **keep flexibility in mind**. 
+
+Try not to incorporate unnecessary hard-coded limits on the number of tasks in a program. **If possible use compile time or runtime parameters to control the granularity.**
 
 #### Transcript
 
@@ -1637,12 +1640,41 @@ Those are two extremes and the most efficient solution will be dependent on the 
 A well designed parallel program should adapt to changes in the number of processors so **keep flexibility in mind**. Try not to incorporate unnecessary hard-coded limits on the number of tasks in a program. If possible use compile time or runtime parameters to control the granularity.
 
 ### Mapping
+Mapping: basically scheduling the tasks, aka. decide where each of the tasks will actually execute? 
 
+#### Use case
+Mapping stage does not apply if 
+* only using a single processor system 
+* or a system with automated task scheduling. e.g. operationg system
+
+Mapping really becomes a factor if you're using a distributed system or specialized hardware with lots of parallel processors for large scale problems, like in scientific computing applications. 
+
+#### Goal and strategies
+Goal: The usual goal of a mapping algorithm is to **minimize the total execution time** of the program
+
+Two main strategies
+* Focus on placing tasks that can execute concurrently on different processors, to increase concurrency
+* Focus on placing tasks that communicate frequently on the same processor to increase locality
+
+* In some cases we can leverage both great
+* But more often they'll conflict with each other: trade offs. 
+
+* Designing a good mapping algorithm is highly dependent on both the program's structure and the hardware it's running on and that gets beyond the scope of this course.
+* If the number of tasks or the amount of computation and communication per task changes as the program executes, that makes the problem more complex and it may require dynamic load balancing techniques that periodically determine a new mapping strategy. 
+
+
+#### Transcript
+The fourth and final stage of our parallel design process is mapping and this is where we specify where each of the tasks we established will actually execute. Now this mapping stage does not apply if you're only using a single processor system because there's only one place to execute the program or if you're using a system with automated task scheduling. So if I'm just writing programs to run on a desktop computer, like the examples we've shown you throughout this course, mapping isn't even a consideration. The operating system handles scheduling threads to execute on specific processor cores, so that's out of our hands. Mapping really becomes a factor if you're using a distributed system or specialized hardware with lots of parallel processors for large scale problems, like in scientific computing applications. The usual goal of a mapping algorithm is to minimize the total execution time of the program and there are two main strategies to achieve that goal. You can place tasks that are capable of executing concurrently on different processors to increase the overall concurrency or you can focus on placing tasks that communicate with each other frequently on the same processor to increase locality by keeping them close together. In some situations, it might be possible to leverage both of those approaches, but more often they'll conflict with each other, which means the design will have to make trade offs. There's a variety of different load balancing algorithms that use domain decomposition and agglomeration techniques to map task execution to processors. If the number of tasks or the amount of computation and communication per task changes as the program executes, that makes the problem more complex and it may require dynamic load balancing techniques that periodically determine a new mapping strategy. Designing a good mapping algorithm is highly dependent on both the program's structure and the hardware it's running on and that gets beyond the scope of this course. So, to summarize the four step parallel design process we start by taking a problem and partitioning, or decomposing it, into a collection of tasks. Then we evaluate the communication necessary to synchronize and share data between those tasks. After that, we agglomerate, or combine those tasks into groups to increase the program's efficiency with certain hardware in mind. And then finally, those tasks get mapped to specific processors to actually execute.
+
+### Summary
+to summarize the four step parallel design process we start by taking a problem and partitioning, or decomposing it, into a collection of tasks. Then we evaluate the communication necessary to synchronize and share data between those tasks. After that, we agglomerate, or combine those tasks into groups to increase the program's efficiency with certain hardware in mind. And then finally, those tasks get mapped to specific processors to actually execute.
 ## TODO: review everything!!!
 ## 6. Challenge Problems
 
-### 
-### 
+### Welcome to the challenges (Transcript)
+Alright folks, you've seen how to design parallel programs. Now it's time for a few challenge problems to practice using the concepts we've covered in this course. - Over the next few videos we'll present you with several algorithms that could benefit from being restructured for concurrency and to execute in parallel. As a starting point we'll provide you with a sequential version of each algorithm and it's your job to implement your own concurrent solution. - Keep in mind there's not a single correct answer to these challenges. So take some time to think them through and when you're done with each challenge be sure to watch our solution videos to see how we approached the problems. 
+### Challenge: Matrix multiply in Java (Transcript)
+Your goal for this challenge is to design and build a parallel program that calculates the product of two matrices which is a common mathematical operation that can benefit a lot from parallel computation. Each matrix will be stored as a two-dimensional array of integer values. The first dimension of the array indexes rows of the matrix and is usually represented with the variable letter i and the second dimension index is columns and is represented with the letter j. So, for example, if the first array index value is zero, that refers to the top row of the matrix and if the second value is two, that identifies the element at index two along that top row. It's common to represent the individual elements of a matrix using notation with two subscripts like this, with the first subscript indicating the row and the second indicating the column. When it comes to multiplication, two matrices can be multiplied together if the number of columns in the first matrix A is equal to the number of rows in the second matrix B. So for example, matrix A shown here is a four-by-two matrix, and B is a two-by-three matrix. Since those inner dimensions are the same, they can be multiplied. The product of A times B which I'll call matrix C on the right will have dimensions based on the number of rows in A and the number of columns in B. Each element in matrix C is the product of the corresponding row in A and column in B. So for example, element C two, one is the product of the row two from matrix A and column one from B. Written as an equation,. C two, one equals A two, zero times B zero, one plus A two, one times B one, one. If I replace the subscripts in that equation with the variables i and j, it can be a little easier to see how the first index i corresponds to the row in A and the second index j corresponds to the column in B. That's the end of our short little math lesson on how matrix multiplication works. To give you a starting point for this challenge, I've already implemented a sequential version of matrix multiplication in the example program. This class called SequentialMatrixMultiplier has a constructor method on line 14 which takes in two two-dimensional arrays of integers to multiply named A and B. It stores those into instance variables and also sets up a few useful variables for the number of rows and columns in A and B which come in useful when writing calculations. Finally, the if statement on line 21 checks to make sure that A and B have valid dimensions to be multiplied together. The compute product method on line 26 contains a sequential algorithm to calculate the product of A and B and return the resulting matrix C. It creates a new two-dimensional array on line 27 to hold the result and then it uses a pair of nested for loops to iterate through each of the rows in A and columns in B. The third for loop on line 31 sums together the products of that row in A and column in B and then the resulting value is stored in the corresponding location in the result matrix C on line 34. Finally, after all of its values have been populated, this method returns matrix C as its output on line 37. Below the SequentialMatrixMultiplier is another class named ParallelMatrixMultiplier on line 42. Its constructor method is basically the same as the previous SequentialMatrixMultiplier class but its compute method on line 59 is empty. Your job for this challenge is to implement your own parallelized version of the computeProduct method that will hopefully execute faster than the sequential version. Don't feel like you have to keep your code or additional classes that you need. Down in this program's main method, we've implemented our simple framework for measuring a parallel program's speed up which we covered in an earlier video. After you implement your compute product method, you'll be able to run this program to see how well it performs. to see how well it performs. Good luck. Good luck.
 ### 
 ### 
 ### 
