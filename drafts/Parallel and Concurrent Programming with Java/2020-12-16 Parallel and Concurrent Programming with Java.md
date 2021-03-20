@@ -1889,3 +1889,6 @@ Your goal for this challenge is to design and build a parallel program that calc
 
 # TODO
 Create a more concised note of this course
+
+# Other reading and resources
+[Java concurrency tutorial](https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html)
