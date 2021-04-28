@@ -1,8 +1,23 @@
+## Basics
+
+### [JS Standard built-in objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+...
+
+Function properties
+* isNaN()
+* eval()
+* parseInt()
+* parseFloat()
+* encodeURI() decodeURI()
+
+...
+
 ### setTimeout
 #### setTimeout without delay
 ```setTimeout(function() {
     ...
-}, 0);```
+}, 0);
+```
 
 https://stackoverflow.com/questions/9083594/call-settimeout-without-delay
 #### wrap setTimeout in a promise
@@ -58,4 +73,6 @@ Every closure has three scopes:
 var hoists to function scope. 
 
 
-## 
+### Macro tasks vs Micro tasks
+JS runtimes are single threaded
+Two queues for tasks 
