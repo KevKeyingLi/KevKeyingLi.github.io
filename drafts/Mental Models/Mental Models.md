@@ -1,0 +1,42 @@
+# Table of Contents
+* Theories
+    - Classic mechanics: newton
+    - quantum mechanics
+    - Three theory of information age
+        + Information theory: quantitive measure of information vs noise
+
+
+# unorganized models
+
+## Information theory
+C.E.Shannon, Fisher.I, Norbert Wiener
+
+https://en.wikipedia.org/wiki/Information_theory
+
+### Keywords
+* information noise ratio
+* entropy
+
+### Theories
+
+## Control theory
+Norbert Wiener
+
+https://en.wikipedia.org/wiki/Control_theory#Open-loop_and_closed-loop_(feedback)_control
+
+### Keywords and key concepts
+* feedback loop
+* react instead of predict
+* commonly used in management philosophy
+## System theory
+
+https://en.wikipedia.org/wiki/Systems_theory
+### Keywords and key concepts
+* A system may be more than the sum of its parts if it expresses synergy or emergent behavior
+* optimizing each part of the system may not optimize the system
+
+## Huffman Coding
+In computer science and information theory, a Huffman code is a particular type of optimal prefix code that is commonly used for lossless data compression
+
+### Investing
+https://www.programmersought.com/article/48255168704/
