@@ -18,6 +18,9 @@ https://en.wikipedia.org/wiki/Information_theory
 * entropy
 
 ### Theories
+* Shannon's source coding theorem(noiseless coding theorem): ideal coding to approach Shannon entropy is "Independent and identically distributed random variables"
+* Noisy-channel coding theorem(sometimes Shannon's theorem or Shannon's limit)
+ 
 
 ## Control theory
 Norbert Wiener
@@ -40,3 +43,13 @@ In computer science and information theory, a Huffman code is a particular type 
 
 ### Investing
 https://www.programmersought.com/article/48255168704/
+
+A combination of the three theories
+* huffman coding to minimize potential risk and maximaze potential profit
+* periodic revisit to re-evaluate, and respond to feedback
+* a basket approach so that the portfolio works together
+
+
+## Mental model with the 3 theories
+* react instead of predict
+* connection instead of ownership
