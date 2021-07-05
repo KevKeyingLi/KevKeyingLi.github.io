@@ -1,11 +1,27 @@
 # Interpersonal Communication - lkdn lrng
+- [Communicating with your colleagues](#communicating-with-your-colleagues)
+  * [1 How to make requests effectively](#1-how-to-make-requests-effectively)
+  * [2 When to use the phone or send an email](#2-when-to-use-the-phone-or-send-an-email)
+  * [3 How to interpret nonverbal cues](#3-how-to-interpret-nonverbal-cues)
+- [Communicating with your supervisor](#communicating-with-your-supervisor)
+  * [1 How to manage expectations](#1-how-to-manage-expectations)
+  * [2 Get the guidance you need](#2-get-the-guidance-you-need)
+  * [3 Ask your boss the right questions](#3-ask-your-boss-the-right-questions)
+  * [4 Know when to listen and when to speak](#4-know-when-to-listen-and-when-to-speak)
+- [Communication in tricky situations](#communication-in-tricky-situations)
+  * [Communication and cultural differences](#communication-and-cultural-differences)
+  * [How to handle an interruption](#how-to-handle-an-interruption)
+  * [How to respond to critical feedback](#how-to-respond-to-critical-feedback)
+  * [How to communicate as an introvert](#how-to-communicate-as-an-introvert)
+- [Conclusion](#conclusion)
+  * [Next steps](#next-steps)
 ## Communicating with your colleagues
 ### 1 How to make requests effectively
 * **Always be helpful to others** First, where possible, it's always a good idea to dig your well before you're thirsty, as the business author Harvey Mackay put it. In other words, try to **invest in a favor bank** before you need to withdraw from it.
-* Next, in the moment when you do have a request make sure you **explain the context**. Let's say you'd like them to stay late at work to help you finish up a report. If they don't know the full story, they may think you were just irresponsible
-* You also want to be sure to **acknowledge that their assistance is a favor**.e.g. *"Thank you for the favor. It means a lot to me."*
-* **Indicate where your interests align**. e.g. *Thanks for your help with this. This report will be critical for the meeting tomorrow and if we can get the new budget approved it will be terrific news for both our departments."*
-* **Express genuine gratitude** It means more if you detail exactly what they did and why it mattered to you. You could say, e.g. *"Thanks so much for staying late last night. I know it was short notice and you're really busy. The edits you made to the report really tightened it up and made it more effective and _I couldn't have done_ the graphic work without you. _You made the report a lot stronger and I know the whole team appreciates it_."*
+* **explain the context**. Next, in the moment when you do have a request make sure you explain the context. Let's say you'd like them to stay late at work to help you finish up a report. If they don't know the full story, they may think you were just irresponsible
+* You also want to be sure to **acknowledge that their assistance is a favor**.e.g. `*"Thank you for the favor. It means a lot to me."*`
+* **Indicate where your interests align**. e.g. `*Thanks for your help with this. This report will be critical for the meeting tomorrow and if we can get the new budget approved it will be terrific news for both our departments."*`
+* **Express genuine gratitude. It means more if you detail exactly what they did and why it mattered to you.** You could say, e.g. `*"Thanks so much for staying late last night. I know it was short notice and you're really busy. The edits you made to the report really tightened it up and made it more effective and _I couldn't have done_ the graphic work without you. _You made the report a lot stronger and I know the whole team appreciates it_."*`
 
 The days of ordering people around are gone. Instead, we have to persuade them to want to collaborate with us.
 
