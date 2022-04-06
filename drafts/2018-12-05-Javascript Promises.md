@@ -208,10 +208,20 @@ async function f() {
 * async/await works well with Promise.all
 
 ## My note:
-`async/await` does the same thing as `Promise`. And the main benefit of `async/await` and `Promise` is they make async operations somewhat synchrounized. From *uh, need to wait for this thing to return* to *wow, I am returned with somthing I can operate on immediately*. 
+* `async/await` does the same thing as `Promise`. benefits of `async/await` and `Promise` 
+ - they make async operations somewhat synchrounized. From *uh, need to wait for this thing to return* to *wow, I am returned with somthing I can operate on immediately*. 
+ - Get rid of all the callback when using promise.
+* using `await` can be [tricky](https://web.dev/async-functions/#careful!-avoid-going-too-sequential)
+
+
 * A quick way to distinguish the concept of `resolve` and `then`.
     - `resolve` is determined by the what we write in the Promise constructor callback function. When used for async call, resolve happens when the async call returns. We define on what condition the promise resolves, and what values to be passed.
     - `then` is where we define what to do when promise is resolved. At the time of executing `then` the promise can either be resolved or not. We shouldn't care.
+
+* It's important to differentiate when the following two happens. We don't necessarily need to write the code for handling together with code for triggering async call. Similarly, we don't need to always `await` when a promise is triggered. 
+ - the async call is started
+ - the result of async call is handled
+
 
 ### Syntax summary
 #### Initialization/Promise wraping
@@ -227,17 +237,22 @@ async function f() {
 p.then((resolveValue) => {}, (rejectValue) => {}).catch((moreRejectValue) => {}).finally(() => {});
 
 #### Static methods
-* `Promise.all(iterable)`
+* `Promise.all(iterable)`: takes an array of promises and creates a promise that fulfills when all of them sucesfully complete. You get an array of results. 
 * `Promise.allSettled(iterable)`
-* `Promise.race(iterable)`
-* `Promise.reject(reason)`
-* `Promise.resolve(value)`
+* `Promise.race(iterable)`: 
+* `Promise.reject(reason)`: creates a rejected Promise, with return value of `reason`
+* `Promise.resolve(value)`: can pass value or leave empty(undefined), this is used a lot to create a resolved Promise, which can be used as a starting point for chaining. [check this example](https://web.dev/promises/#creating-a-sequence).
 
 ## Links and readings:
 * [Javascript Promises - Udacity](https://www.udacity.com/course/javascript-promises--ud898)
-* [JavaScript Promises - Jake Archibald](https://developers.google.com/web/fundamentals/primers/promises)
+* [JavaScript Promises - Jake Archibald](https://developers.google.com/web/fundamentals/primers/promises) Great article with examples
+ - good example on Sequential and Parallel processing of promises: 
+  + Sequential async calls by thenning
+  + parallel async calls by `Promise.all()`
+  + *Parallel issuing of async calls, and sequentially handle them*. 
 * [States and Fates](https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md)
 * [MDN Promise Doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+* [Async functions: making promises friendly - Jake Archibald](https://web.dev/async-functions/)
 
 
 
