@@ -54,6 +54,14 @@ Passing values or `undefined` through `resolve()` and `reject()` to `.then` and 
 
 Usually `resolve` and `reject` are called in the async operations callback function. 
 
+Key points
+* `new Promise(function(resolve, reject) {})`
+ - Promise constructo takes in a callback
+ - the callback takes two callbacks `resolve` and `reject` that Promise constructor will pass in to indicate **resolve** vs **reject**
+ - arguments can be passed into `resolve` and `reject`, these arguments will be available in the callbacks of `then` and `catch`
+* `promise.then(function(...someArg) {do something with return value from resolve});`
+
+
 ## Compare Promise-like implementations across web technologies
 * Javascript native Promises come into being in 2014
 * JQuery has it's own Promises, but had some serious issues
@@ -163,7 +171,7 @@ async function f() {
 }
 ```
 
-The word “async” before a function means one simple thing: a function always returns a promise. If the code has return <non-promise> in it, then JavaScript automatically wraps it into a resolved promise with that value. **To summarize, `async` either returns a existing promise, or wraps non-promise in it.**
+The word “async” before a function means one simple thing: a function always returns a promise. If the code has return \<non-promise> in it, then JavaScript automatically wraps it into a resolved promise with that value. **To summarize, `async` either returns a existing promise, or wraps non-promise in it.**
 
 The result of `f().then(alert)` will have the same response with the above two functions. 
 
@@ -201,28 +209,29 @@ async function f() {
 
 ## My note:
 `async/await` does the same thing as `Promise`. And the main benefit of `async/await` and `Promise` is they make async operations somewhat synchrounized. From *uh, need to wait for this thing to return* to *wow, I am returned with somthing I can operate on immediately*. 
-* A quick way to distinguish the concept of resolve and then.
-    - resolve is determined by the what we write in the Promise constructor callback function. When used for async call, resolve happens when the async call returns. We define on what condition the promise resolves.
-    - then is where we define what to do when promise is resolved. At the time of executing `then` the promise can either be resolved or not. We shouldn't care.  
+* A quick way to distinguish the concept of `resolve` and `then`.
+    - `resolve` is determined by the what we write in the Promise constructor callback function. When used for async call, resolve happens when the async call returns. We define on what condition the promise resolves, and what values to be passed.
+    - `then` is where we define what to do when promise is resolved. At the time of executing `then` the promise can either be resolved or not. We shouldn't care.
 
 ### Syntax summary
 #### Initialization/Promise wraping
-const p = new Promise((resolve, reject) => {
+```
+ const p = new Promise((resolve, reject) => {
     //in some case resolve
     resolve(resolveValue);
     //in some cases reject
     reject(rejectValue);
 });
-
+```
 #### Handling/Chaining
 p.then((resolveValue) => {}, (rejectValue) => {}).catch((moreRejectValue) => {}).finally(() => {});
 
 #### Static methods
-* Promise.all(iterable)
-* Promise.allSettled(iterable)
-* Promise.race(iterable)
-* Promise.reject(reason)
-* Promise.resolve(value)
+* `Promise.all(iterable)`
+* `Promise.allSettled(iterable)`
+* `Promise.race(iterable)`
+* `Promise.reject(reason)`
+* `Promise.resolve(value)`
 
 ## Links and readings:
 * [Javascript Promises - Udacity](https://www.udacity.com/course/javascript-promises--ud898)
