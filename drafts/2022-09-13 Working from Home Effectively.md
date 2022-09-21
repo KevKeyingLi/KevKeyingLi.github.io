@@ -16,3 +16,25 @@ Question:
 ## Common Myths and Misconceptions
 
 Managers Point of View:
+* wfh is less work
+* Harder to manage
+* can only do small tasks
+
+
+Employees:
+* It's going to be easy
+* don't have a room: a desk is all you need
+* Technology
+* not suitable for non-tech work
+
+
+## Unexpected bonuses
+* No more commuting
+    - more time
+    - more happiness
+* control of environment, flexible
+    - home shopping
+    - occasional errands
+    - no chatty co-worker
+    - take breaks as you like
+
