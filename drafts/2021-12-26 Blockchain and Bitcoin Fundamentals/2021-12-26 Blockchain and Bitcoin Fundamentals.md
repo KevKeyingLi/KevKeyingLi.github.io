@@ -467,12 +467,133 @@ Nov 28th 2013: 1000USD
 Mar 2nd 2017 past 1 oz of gold
 
 ## On merkle tree
+A merkle tree is a mathematical data structure composed of hashes of different blocks of data and which serves as a summary of all the transactions in a block
+
+* A.K.A. Hash tree
+* named after Ralph Merkle
+* it is possible to create a blockchain without a Merkle Tree
+
+Merkle root: summary of all transactions in the block
+
+Binary tree
+transactions are on the leaves, on each level, parent's hash is the concatenation of children hashes.
+
+Merkle root's hash is generated from all the transactions on a block, and merkle root is part of the block that is used to generate the block's hash. 
+* merkle root's hash is consistent with all transactions, any change to any of then would break consistency
+* block's hash is consistent with merkle root, any change to merkle root, would break the consistency
+
+## quiz
+Bitcoin is not anonymous, it is instead pseudonymous.
+
+To send bitcoin over the Internet to someone else, you do not need the services of a bank. You simply send money directly to the other person and it will arrive securely and almost instantly.
+
+Nick Szabo is regarded as the father of smart contracts for having written about and used the term "smart contracts" as far back as early as 1994
+
+There will be a maximum number of 21 million bitcoins available. This number will be reached in the year 2140.
+
+The Merkle Root in a Bitcoin transaction block is a single hash that presents a summary of all the transactions in that block.
+
+## additional fun ways of looking at bitcoin at work
+* blockchain.com/explorer
+* bicoin-vr.github.io
+* fiatleak.com
+* realtimebitcoin.info
+* blocks.wizb.it
+* billfodl.com/pages/bitbonkers
+bitlisten.com
+
+
+# Section 3: Getting started with Bitcoin
+
+## getting started with bitcoin
+* transaction is irreversible
+Steps
+* learn about bitcoin
+* choose your wallet
+* get an address
+* public and private keys
+get bitcoins
+spend bitcoins
+
+## Choose your bitcoin wallet
+bitcoin.org
+
+https://bitcoin.org/en/choose-your-wallet
+
+Hardware: most secure
+Web
+Mobile
+Desktop
+
+start with one wallet, gradually get into it. maybe start with a web one
+
+keep a controllable amount on hot storage, rest on cold storage, to keep safe. 
+
+
+## sending and receiving bitcoins
+Public key and private key
+
+private key to authorize transactions
+
+Bitcoin address is generated from public key
+Generate bitcoin address often so it's less easy for people to track, thus, safer
+
+Bitcoin address: 26 to 35 alpha-numeric, begin with number 1 or 3, ending with h
+Share bitcoin address, or QR code. 
+
+
+## Store your bitcoins safely
+1. make sure your devices are clean and virus-free
+2. use firewalls
+3. avoid public wifi
+4. Use VPN
+
+Hot storage vs cold storage
+Hot storage:
+* connected to internet
+* easy and convernient
+* Vulnerable to hackers
+* Keep small amounts
+
+Cold storage
+* store **keys** offline
+* Brain wallet: a passphrase -> generate a wallet online with the word
+* paper wallet: safe, but vulnerable. paper can be destroyed
+* USB drive: vulnerable
+* hardware wallet: recommended
+
+### Final thoughts
+Never reveal your private keys
+keep most cryptocurrency cold
+make backups
 
 
 
+### resources
+* https://coinsutra.com/cold-storage-cryptocurrency/
+* https://coinsutra.com/bitcoin-hard-fork-dos-and-donts/
+* https://youtu.be/9fFDuJj459Q
+* https://cryptocurrencyfacts.com/using-two-factor-authentication-in-cryptocurrency/
+
+## Converting your bitcoins to Fiat currency
+
+* use a crypto Exchange
+    * coinbase
+    * kraken
+    * gemini
+    * bitstamp
+* bitcoin debit card
+    - coinbase visa
+    - bitwala
+* sell them to someone else. Note transactions are irreversible
+* Local trading site
+    - localbitcoins.comc
+* Bitcoin ATM, Bitcoin Teller Machine
 
 
+# Section 4: Review and Free Resources
+## Course review and valuable free resources
 
 
-
+## Bonus Lecture
 
