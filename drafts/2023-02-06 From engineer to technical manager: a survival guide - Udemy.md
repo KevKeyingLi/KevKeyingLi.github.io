@@ -1,7 +1,8 @@
 # 1 intro
-Kane, Sr SDE to Manager to Sr Manager at Amazon.
+Frank Kane, Sr SDE to Manager to Sr Manager at Amazon.
 Learned directly from Jeff Bezos
 
+https://servicenow.udemy.com/course/from-engineer-to-technical-manager-a-survival-guide/learn/lecture/32970568#overview
 Survive to thrive, focus on engineer transition.
 
 Course outline
